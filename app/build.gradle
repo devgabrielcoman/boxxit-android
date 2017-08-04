@@ -5,11 +5,17 @@ android {
     buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "com.boxxit.boxxit"
-        minSdkVersion 15
+        minSdkVersion 17
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        jackOptions {
+            enabled true
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     buildTypes {
         release {
@@ -19,11 +25,28 @@ android {
     }
 }
 
+repositories {
+    maven { url 'https://oss.jfrog.org/libs-snapshot' }
+    maven { url  'http://dl.bintray.com/gabrielcoman/maven' }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
     compile 'com.android.support:appcompat-v7:25.3.1'
     testCompile 'junit:junit:4.12'
+
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.1.6'
+    compile 'com.jakewharton.rxbinding:rxbinding:0.4.0'
+
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'jp.wasabeef:picasso-transformations:2.1.2'
+    compile 'jp.co.cyberagent.android.gpuimage:gpuimage-library:1.4.1'
+
+    compile 'gabrielcoman.com.rxdatasource:rxdatasource:1.0.6'
+
+    compile 'com.google.code.gson:gson:2.8.0'
+    compile 'com.google.guava:guava:22.0-android'
+
+    compile 'com.squareup.okhttp3:okhttp:3.6.0'
 }
