@@ -13,9 +13,14 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="BigButtonStyle">
+    <style name="BigButtonWhiteStyle">
         <item name="android:textColor">@color/white</item>
-        <item name="android:background">@drawable/big_button</item>
+        <item name="android:background">@drawable/big_button_light</item>
+    </style>
+
+    <style name="BigButtonDarkStyle">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@drawable/big_button_dark</item>
     </style>
 
     <style name="SmallButtonStyle">

@@ -1,13 +1,16 @@
 package com.boxxit.boxxit.app.activities.main;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
+import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.squareup.picasso.Picasso;
 
@@ -23,10 +26,8 @@ public class MainActivity extends BaseActivity {
         Log.d("Boxxit", "Main activity");
 
         //
-        // customise user profile
+        // perform state logic
         getUserProfile();
-
-        // and all events
         getAllEvents();
     }
 
@@ -61,5 +62,17 @@ public class MainActivity extends BaseActivity {
 
     void getAllEvents () {
 
+    }
+
+    void gotoProfile (String profile) {
+        Intent intent = new Intent(this, ExploreActivity.class);
+        intent.putExtra("profile", profile);
+        startActivity(intent);
+    }
+
+    //
+    // action
+    public void showMyGiftsAction (View view) {
+        gotoProfile("me");
     }
 }

@@ -7,6 +7,9 @@
 
     <!-- text colors -->
     <color name="text_dark">#4D4F55</color>
+    <color name="text_medium">#5C5D60</color>
+    <color name="text_blue">#0F2A42</color>
+    <color name="text_red">#FF4848</color>
 
     <color name="transparent">#00000000</color>
     <color name="white">#ffffff</color>

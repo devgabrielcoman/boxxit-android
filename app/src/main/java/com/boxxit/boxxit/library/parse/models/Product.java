@@ -9,5 +9,5 @@ public class Product {
     public String smallIcon;
     public String largeIcon;
     public boolean isFavourite;
-    public String category;
+    public String categId;
 }

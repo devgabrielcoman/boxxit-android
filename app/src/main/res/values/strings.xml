@@ -16,4 +16,12 @@
     <string name="activity_main_birthday_placeholder">Birthday</string>
     <string name="activity_main_find_for_you">Find for you</string>
 
+    <!-- explore -->
+    <string name="activity_explore_name_placeholder">Name</string>
+    <string name="activity_explore_birthday_placeholder">Birthday</string>
+    <string name="activity_explore_get_amazon">Get on Amazon</string>
+    <string name="activity_explore_product_price_placeholder">£23.5</string>
+    <string name="activity_explore_product_name_placeholder">This is\nproduct</string>
+    <string name="activity_explore_product_reason_you">Recommended because you like %1$s</string>
+    <string name="activity_explore_product_reason_friend">Recommended because your friend likes %1$s</string>
 </resources>

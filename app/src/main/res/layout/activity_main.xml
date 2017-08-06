@@ -54,13 +54,16 @@
             style="@style/SmallButtonStyle"
             android:text="@string/activity_main_find_for_you"
             android:layout_width="140dp"
-            android:layout_height="30dp" />
+            android:layout_height="30dp"
+            android:onClick="showMyGiftsAction"/>
 
         <View
+            android:id="@+id/Separator"
             android:layout_below="@+id/FindForYou"
             android:background="@color/separator"
             android:layout_width="match_parent"
             android:layout_height="1dp"/>
+
     </RelativeLayout>
 
 </LinearLayout>

@@ -30,17 +30,29 @@
         </activity>
 
         <!-- Boxxit -->
-        <activity android:name=".app.activities.intro.IntroActivity">
+        <activity
+            android:name=".app.activities.intro.IntroActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".app.activities.main.MainActivity"/>
-        <activity android:name=".app.activities.login.LoginActivity"/>
-        <activity android:name=".app.activities.load.LoadActivity"/>
-        <activity android:name=".app.activities.explore.ExploreActivity"/>
-        <activity android:name=".app.activities.favourites.FavouritesActivity"/>
+        <activity
+            android:name=".app.activities.main.MainActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".app.activities.login.LoginActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".app.activities.load.LoadActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".app.activities.explore.ExploreActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".app.activities.favourites.FavouritesActivity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>
