@@ -28,6 +28,7 @@ android {
 repositories {
     maven { url 'https://oss.jfrog.org/libs-snapshot' }
     maven { url  'http://dl.bintray.com/gabrielcoman/maven' }
+    mavenCentral()
 }
 
 dependencies {
@@ -49,4 +50,8 @@ dependencies {
     compile 'com.google.guava:guava:22.0-android'
 
     compile 'com.squareup.okhttp3:okhttp:3.6.0'
+
+    compile('com.facebook.android:facebook-android-sdk:[4,5)', {
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
+    })
 }

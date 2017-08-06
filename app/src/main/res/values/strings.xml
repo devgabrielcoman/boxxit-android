@@ -1,3 +1,19 @@
 <resources>
+    <!-- general -->
     <string name="app_name">Boxxit</string>
+
+    <!-- facebook -->
+    <string name="facebook_app_id">181375615709434</string>
+    <string name="fb_login_protocol_scheme">fb181375615709434</string>
+
+    <!-- activities -->
+
+    <!-- login -->
+    <string name="activity_login_btn_text">Login with Facebook</string>
+
+    <!-- main -->
+    <string name="activity_main_name_placeholder">Name</string>
+    <string name="activity_main_birthday_placeholder">Birthday</string>
+    <string name="activity_main_find_for_you">Find for you</string>
+
 </resources>

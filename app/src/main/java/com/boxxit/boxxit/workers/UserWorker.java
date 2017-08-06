@@ -1,25 +1,25 @@
 package com.boxxit.boxxit.workers;
 
+import android.app.Activity;
+
 import com.boxxit.boxxit.datastore.DataStore;
+import com.boxxit.boxxit.library.auth.FacebookAuthRequest;
+import com.boxxit.boxxit.library.auth.FacebookAuthTask;
 import com.boxxit.boxxit.library.network.NetworkRequest;
 import com.boxxit.boxxit.library.network.NetworkTask;
 import com.boxxit.boxxit.library.parse.ParseFacebookDataTask;
 import com.boxxit.boxxit.library.parse.ParseFacebookProfileTask;
 import com.boxxit.boxxit.library.parse.models.facebook.FacebookData;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
+import com.facebook.AccessToken;
 
+import rx.Observable;
 import rx.Single;
 
 public class UserWorker {
 
-    // TODO: 04/08/2017 Fill this method
     public static boolean isUserLoggedIn () {
-        return true;
-    }
-
-    // TODO: 04/08/2017 Fill this method
-    public static Single<String> login() {
-        return Single.just("");
+        return AccessToken.getCurrentAccessToken() != null;
     }
 
     public static Single<Profile> getProfile(String id) {
