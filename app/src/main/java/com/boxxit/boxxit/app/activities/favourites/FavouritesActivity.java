@@ -7,13 +7,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
-import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
 import com.boxxit.boxxit.library.parse.models.Product;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.ProductsWorker;
@@ -24,14 +22,10 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
-import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action2;
-import rx.functions.Func1;
 
 public class FavouritesActivity extends BaseActivity {
 
-    private String facebookUser = "me";
     private RxAdapter adapter;
 
     @Override
@@ -39,67 +33,46 @@ public class FavouritesActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favourites);
 
-        Log.d("Boxxit", "Favourites activity");
-
-        setStateInitial();
         getStringExtras("profile")
-                .doOnSuccess(userId -> facebookUser = userId)
-                .subscribe(s -> {
-                    populateProfileUI(facebookUser);
-                    getUserFavouriteProducts(facebookUser);
-                }, throwable -> {
-                    // error getting string extras
-                });
+                .doOnSubscribe(this::setStateInitial)
+                .flatMap(UserWorker::getProfile)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess(this::populateProfileUI)
+                .toObservable()
+                .map(profile -> profile.id)
+                .flatMap(ProductsWorker::getFavouriteProductsForUser)
+                .toList()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::populateProductsUI, this::setStateError);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Business Logic
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void populateProfileUI (String userId) {
+    void populateProfileUI (Profile profile) {
 
-        UserWorker.getProfile(userId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(profile -> {
+        ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);
+        TextView profileName = (TextView) findViewById(R.id.ProfileName);
+        TextView profileBirthday = (TextView) findViewById(R.id.ProfileBirthday);
 
-                    ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);
-                    TextView profileName = (TextView) findViewById(R.id.ProfileName);
-                    TextView profileBirthday = (TextView) findViewById(R.id.ProfileBirthday);
+        profileName.setText(profile.name);
+        profileBirthday.setText(profile.birthday);
 
-                    profileName.setText(profile.name);
-                    profileBirthday.setText(profile.birthday);
-
-                    Picasso.with(FavouritesActivity.this)
-                            .load(profile.picture.data.url)
-                            .placeholder(R.drawable.ic_user_default)
-                            .error(R.drawable.ic_user_default)
-                            .transform(new CropCircleTransformation())
-                            .into(profilePicture);
-
-                }, throwable -> {
-                    // do nothing here
-                });
+        Picasso.with(FavouritesActivity.this)
+                .load(profile.picture.data.url)
+                .placeholder(R.drawable.ic_user_default)
+                .error(R.drawable.ic_user_default)
+                .transform(new CropCircleTransformation())
+                .into(profilePicture);
     }
 
-    void getUserFavouriteProducts (String userId) {
-
-        UserWorker.getProfile(userId)
-                .toObservable()
-                .flatMap(profile -> ProductsWorker.getFavouriteProductsForUser(profile.id))
-                .toList()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(products -> {
-                    if (products.size() == 0) {
-                        // still nothing, some type of error here!
-                    } else {
-                        setStateSuccess(products);
-                    }
-                }, throwable -> {
-                    Log.d("Boxxit", "Error is " + throwable.getMessage());
-                }, () -> {
-                    Log.d("Boxxit", "Completed loading!");
-                });
-
+    void populateProductsUI (List<Product> products) {
+        if (products.size() == 0) {
+            setStateEmpty();
+        } else {
+            setStateSuccess(products);
+        }
     }
 
     public void backAction (View view) {
@@ -133,7 +106,17 @@ public class FavouritesActivity extends BaseActivity {
                 });
     }
 
-    private void setStateSuccess(List<Product> products) {
+    private void setStateSuccess (List<Product> products) {
         adapter.update(products);
+    }
+
+    // TODO: 07/08/2017 Handle error case
+    private void setStateError (Throwable throwable) {
+        Log.d("Boxxit", "Error is " + throwable.getMessage());
+    }
+
+    // TODO: 07/08/2017 Handle Empty case
+    private void setStateEmpty () {
+        Log.d("Boxxit", "User hsa no products");
     }
 }

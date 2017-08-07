@@ -2,7 +2,6 @@ package com.boxxit.boxxit.app.activities.intro;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
@@ -19,15 +18,8 @@ public class IntroActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro);
 
-        Log.d("Boxxit", "Intro activity");
-
-        //
-        // initialize Facebook SDK
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
-
-        //
-        // apply business logic
         checkLogin();
     }
 

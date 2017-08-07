@@ -67,7 +67,7 @@
             android:background="@color/transparent"
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:onClick="showFavouritesAction"/>
+            android:onClick="gotoNextScreen"/>
 
         <View
             android:layout_alignParentBottom="true"

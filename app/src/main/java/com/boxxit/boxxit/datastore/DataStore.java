@@ -26,4 +26,8 @@ public class DataStore {
     public Profile getProfile(String id) {
         return profiles.get(id);
     }
+
+    public static String getOwnId () {
+        return com.facebook.Profile.getCurrentProfile().getId();
+    }
 }

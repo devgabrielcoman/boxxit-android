@@ -1,12 +1,9 @@
 package com.boxxit.boxxit.app.activities.main;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,9 +11,7 @@ import android.widget.TextView;
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
-import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
-import com.boxxit.boxxit.library.parse.models.Product;
-import com.boxxit.boxxit.library.parse.models.facebook.FacebookData;
+import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
@@ -27,12 +22,10 @@ import java.util.List;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Action2;
-import rx.functions.Func1;
 
 public class MainActivity extends BaseActivity {
 
+    private String facebookUser;
     private RxAdapter adapter;
 
     @Override
@@ -40,64 +33,56 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.d("Boxxit", "Main activity");
-
-        setStateInitial();
-        getUserProfile();
-        getAllEvents();
+        UserWorker.getProfile(DataStore.getOwnId())
+                .doOnSubscribe(this::setStateInitial)
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess(this::populateOwnProfileUI)
+                .map(profile -> profile.id)
+                .doOnSuccess(userId -> facebookUser = userId)
+                .subscribe(this::getAllEvents, this::setStateError);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // Business Logic
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void getUserProfile () {
+    void populateOwnProfileUI (Profile profile) {
+        ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);
+        TextView profileName = (TextView) findViewById(R.id.ProfileName);
+        TextView profileBirthday = (TextView) findViewById(R.id.ProfileBirthday);
 
-        UserWorker.getProfile("me")
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(profile -> {
+        profileName.setText(profile.name);
+        profileBirthday.setText(profile.birthday);
 
-                    ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);
-                    TextView profileName = (TextView) findViewById(R.id.ProfileName);
-                    TextView profileBirthday = (TextView) findViewById(R.id.ProfileBirthday);
-
-                    profileName.setText(profile.name);
-                    profileBirthday.setText(profile.birthday);
-
-                    Picasso.with(MainActivity.this)
-                            .load(profile.picture.data.url)
-                            .placeholder(R.drawable.ic_user_default)
-                            .error(R.drawable.ic_user_default)
-                            .transform(new CropCircleTransformation())
-                            .into(profilePicture);
-
-                }, throwable -> {
-                    // do nothing here
-                });
-
+        Picasso.with(MainActivity.this)
+                .load(profile.picture.data.url)
+                .placeholder(R.drawable.ic_user_default)
+                .error(R.drawable.ic_user_default)
+                .transform(new CropCircleTransformation())
+                .into(profilePicture);
     }
 
-    void getAllEvents () {
-
-        UserWorker.getEventsForUser("me", null)
+    void getAllEvents (String userId) {
+        UserWorker.getEventsForUser(userId, null)
                 .flatMap(facebookData -> Single.just(facebookData.data))
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::setStateSuccess, throwable -> Log.d("Boxxit", "Error is " + throwable.getMessage()));
+                .subscribe(this::setStateSuccess, this::setStateError);
 
     }
 
-    void gotoProfile (String profile) {
+    public void showMyGiftsAction (View view) {
+        gotoNextScreen(facebookUser);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+    // Routing Logic
+    ////////////////////////////////////////////////////////////////////////////////////////////////
+
+    void gotoNextScreen (String profile) {
         Intent intent = new Intent(this, ExploreActivity.class);
         intent.putExtra("profile", profile);
         startActivity(intent);
     }
-
-    //
-    // action
-    public void showMyGiftsAction (View view) {
-        gotoProfile("me");
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////
     // State Logic
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,14 +108,18 @@ public class MainActivity extends BaseActivity {
                             .transform(new CropCircleTransformation())
                             .into(profilePicture);
                 })
-                .didClickOnRow(Profile.class, (integer, profile) -> {
-                    Intent intent = new Intent(this, ExploreActivity.class);
-                    intent.putExtra("profile", profile.id);
-                    startActivity(intent);
+                .didClickOnRow(Profile.class, (integer, profile) -> gotoNextScreen(profile.id))
+                .didReachEnd(() -> {
+
                 });
     }
 
-    private void setStateSuccess(List<Profile> products) {
-        adapter.update(products);
+    private void setStateSuccess(List<Profile> events) {
+        adapter.update(events);
+    }
+
+    // TODO: 07/08/2017 Handle error case
+    private void setStateError (Throwable throwable) {
+        // do nothing
     }
 }

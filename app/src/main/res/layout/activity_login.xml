@@ -27,6 +27,7 @@
         android:layout_height="80dp" />
 
     <Button
+        android:id="@+id/LoginButton"
         android:text="@string/activity_login_btn_text"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="30dp"
@@ -35,5 +36,14 @@
         android:layout_width="300dp"
         android:layout_height="40dp"
         android:onClick="loginAction"/>
+
+    <ProgressBar
+        android:id="@+id/Spinner"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
 </RelativeLayout>
