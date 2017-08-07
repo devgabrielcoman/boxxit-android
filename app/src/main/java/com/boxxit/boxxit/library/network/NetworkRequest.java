@@ -3,6 +3,7 @@ package com.boxxit.boxxit.library.network;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.facebook.AccessToken;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.UnsupportedEncodingException;
@@ -16,7 +17,11 @@ public abstract class NetworkRequest implements RequestOptions {
     private NetworkRequest() {}
 
     private static String token () {
-        return "EAACk9c0lMPoBADPhsSVo4E0RO6eTAOJ13xwXJZBD6LigBRDkobTCkIADCsJyWjZC6nGsOUZAZCZBFtcJYmBZCQFvlupRyTJIsK4M1qXEuenrwq0V1HiAbTu9PYfZBDjAJV6xZAju64AngCyh8LkzScVoZCOVZCC1Aape2UIMUWoHZBf854l60hIXf8SVeTaOWOlJku4pSqZAPlFl6KZA9zh1l14ZA1YowJspKe0bf9XI4kL88ZBUwZDZD";
+        try {
+            return AccessToken.getCurrentAccessToken().getToken();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @NonNull

@@ -50,7 +50,7 @@ public class UserWorker {
         return task.execute(request).map(s -> null);
     }
 
-    public static Single<FacebookData<Profile>> getEventsForUser(String id, String offset) {
+    public static Single<FacebookData> getEventsForUser(String id, String offset) {
         NetworkRequest request = NetworkRequest.getFriendsFromFacebook(id, offset);
         NetworkTask task = new NetworkTask();
         return task.execute(request)

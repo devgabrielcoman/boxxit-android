@@ -17,6 +17,8 @@ public class ParseFacebookProfileTask implements Task<String, Profile, Single<Pr
 
         return Single.create(subscriber -> {
 
+            Log.d("Boxxit", "Profile: " + input);
+
             try {
                 Gson gson = new Gson();
                 Profile profile = gson.fromJson(input, Profile.class);

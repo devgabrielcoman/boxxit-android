@@ -59,6 +59,7 @@ public class FavouritesActivity extends BaseActivity {
     void populateProfileUI (String userId) {
 
         UserWorker.getProfile(userId)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(profile -> {
 
                     ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);

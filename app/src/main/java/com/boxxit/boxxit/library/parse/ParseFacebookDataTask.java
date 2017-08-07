@@ -11,16 +11,18 @@ import com.google.gson.JsonParseException;
 
 import rx.Single;
 
-public class ParseFacebookDataTask implements Task <String, FacebookData<Profile>, Single<FacebookData<Profile>>> {
+public class ParseFacebookDataTask implements Task <String, FacebookData, Single<FacebookData>> {
 
     @Override
-    public Single<FacebookData<Profile>> execute(String input) {
+    public Single<FacebookData> execute(String input) {
 
         return Single.create(subscriber -> {
 
+            Log.d("Boxxit", "Events: " + input);
+
             try {
                 Gson gson = new Gson();
-                FacebookData<Profile> data = gson.fromJson(input, FacebookData.class);
+                FacebookData data = gson.fromJson(input, FacebookData.class);
                 subscriber.onSuccess(data);
             } catch (JsonParseException e) {
                 subscriber.onError(e);

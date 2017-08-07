@@ -3,6 +3,7 @@ package com.boxxit.boxxit.app.activities.explore;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.media.VolumeProviderCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -15,19 +16,26 @@ import android.widget.TextView;
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
+import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.Product;
+import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.ProductsWorker;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
+import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import rx.Observable;
+import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
+import rx.functions.Action1;
 import rx.functions.Action4;
+import rx.functions.Func1;
 
 public class ExploreActivity extends BaseActivity {
 
@@ -51,7 +59,7 @@ public class ExploreActivity extends BaseActivity {
                     populateProfileUI(facebookUser);
                     getUserProducts(facebookUser, minPrice, maxPrice);
                 }, throwable -> {
-                    // error getting string extras
+                    Log.d("Boxxit", "Error here: " + throwable.getMessage());
                 });
     }
 
@@ -62,7 +70,10 @@ public class ExploreActivity extends BaseActivity {
     void populateProfileUI (String userId) {
 
         UserWorker.getProfile(userId)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(profile -> {
+
+                    Log.d("Boxxit", "Profile: " + profile.name + " / " + profile.birthday + " / " + profile.picture.data.url);
 
                     ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);
                     TextView profileName = (TextView) findViewById(R.id.ProfileName);
@@ -149,8 +160,34 @@ public class ExploreActivity extends BaseActivity {
                             .load(product.largeIcon)
                             .into(productImage);
 
+                    //
+                    // when clicking on the amazon button
                     amazonButton.setOnClickListener(v -> {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
+                    });
+
+                    //
+                    // when clicking on the heart button
+                    Profile user = DataStore.shared().getProfile(facebookUser);
+
+                    likeProduct.setOnClickListener(v -> {
+
+                        Single<Void> rxOperation = product.isFavourite ?
+                                ProductsWorker.deleteFavouriteProduct(product.asin, user.id):
+                                ProductsWorker.saveFavouriteProduct(product.asin, user.id);
+
+                        rxOperation
+                                .doOnSubscribe(() -> {
+                                    product.isFavourite = !product.isFavourite;
+                                    likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
+                                })
+                                .flatMap(aVoid -> rxOperation)
+                                .subscribe(aVoid -> {
+                                    // do nothing
+                                }, throwable -> {
+                                    product.isFavourite = !product.isFavourite;
+                                    likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
+                                });
                     });
                 })
                 .didReachEnd(() -> getUserProducts(facebookUser, minPrice, maxPrice));

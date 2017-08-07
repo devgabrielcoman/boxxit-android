@@ -9,5 +9,5 @@ public class Profile {
     public String first_name;
     public String gender;
     public Picture picture;
-    public FacebookData<Object> friends = new FacebookData<>();
+    public FacebookData friends = new FacebookData();
 }
