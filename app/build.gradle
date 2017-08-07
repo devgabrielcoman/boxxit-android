@@ -39,7 +39,8 @@ dependencies {
     compile 'io.reactivex:rxandroid:1.2.1'
     compile 'io.reactivex:rxjava:1.1.6'
     compile 'com.jakewharton.rxbinding:rxbinding:0.4.0'
-    compile 'gabrielcoman.com.rxdatasource:rxdatasource:1.0.7'
+
+    compile 'com.gabrielcoman.rxrecyclerview:rxrecyclerview:1.0.1'
 
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'jp.wasabeef:picasso-transformations:2.1.2'

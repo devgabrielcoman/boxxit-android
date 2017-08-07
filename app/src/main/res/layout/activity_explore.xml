@@ -77,10 +77,10 @@
 
     </RelativeLayout>
 
-    <ListView
-        android:id="@+id/ProductsListView"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/ProductsRecyclerView"
         android:scrollbars="none"
-        android:divider="@null"
+        android:background="#ffffff"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 

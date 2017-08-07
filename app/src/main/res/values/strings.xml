@@ -24,4 +24,8 @@
     <string name="activity_explore_product_name_placeholder">This is\nproduct</string>
     <string name="activity_explore_product_reason_you">Recommended because you like %1$s</string>
     <string name="activity_explore_product_reason_friend">Recommended because your friend likes %1$s</string>
+
+    <!-- favourites -->
+    <string name="activity_favourites_product_name_placeholder">This is\nproduct</string>
+    <string name="activity_favourites_product_price_placeholder">£23.5</string>
 </resources>

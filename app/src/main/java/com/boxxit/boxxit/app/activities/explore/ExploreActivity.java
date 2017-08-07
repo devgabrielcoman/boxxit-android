@@ -1,12 +1,15 @@
 package com.boxxit.boxxit.app.activities.explore;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -15,16 +18,16 @@ import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
 import com.boxxit.boxxit.library.parse.models.Product;
 import com.boxxit.boxxit.workers.ProductsWorker;
 import com.boxxit.boxxit.workers.UserWorker;
+import com.gabrielcoman.rxrecyclerview.RxAdapter;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import gabrielcoman.com.rxdatasource.RxDataSource;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func2;
+import rx.functions.Action0;
+import rx.functions.Action4;
 
 public class ExploreActivity extends BaseActivity {
 
@@ -32,7 +35,7 @@ public class ExploreActivity extends BaseActivity {
     private int minPrice = 500;
     private int maxPrice = 5000;
 
-    private RxDataSource dataSource;
+    private RxAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,10 +44,7 @@ public class ExploreActivity extends BaseActivity {
 
         Log.d("Boxxit", "Explore activity");
 
-        //
-        // set initial state
         setStateInitial();
-
         getStringExtras("profile")
                 .doOnSuccess(userId -> facebookUser = userId)
                 .subscribe(s -> {
@@ -123,22 +123,24 @@ public class ExploreActivity extends BaseActivity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void setStateInitial () {
-        ListView listView = (ListView) findViewById(R.id.ProductsListView);
-        dataSource = RxDataSource.create(this)
-                .bindTo(listView)
-                .customiseRow(R.layout.row_product, Product.class, (i, view, product) -> {
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.ProductsRecyclerView);
+        adapter = RxAdapter.create()
+                .bindTo(recyclerView)
+                .setLayoutManger(new LinearLayoutManager(getApplicationContext()))
+                .customizeRow(R.layout.row_product, Product.class, (position, view, product, total) -> {
 
                     TextView productName = (TextView) view.findViewById(R.id.ProductName);
                     TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
                     TextView productReason = (TextView) view.findViewById(R.id.ProductReason);
                     ImageButton likeProduct = (ImageButton) view.findViewById(R.id.LikeButton);
                     ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
+                    Button amazonButton = (Button) view.findViewById(R.id.AmazonBtn);
 
                     productName.setText(product.title);
                     productPrice.setText(product.price);
                     productReason.setText(getString(this.facebookUser.equals("me") ?
-                            R.string.activity_explore_product_reason_you :
-                            R.string.activity_explore_product_reason_friend,
+                                    R.string.activity_explore_product_reason_you :
+                                    R.string.activity_explore_product_reason_friend,
                             product.categId));
                     likeProduct.setVisibility(this.facebookUser.equals("me") ? View.VISIBLE : View.GONE);
                     likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
@@ -146,10 +148,15 @@ public class ExploreActivity extends BaseActivity {
                     Picasso.with(ExploreActivity.this)
                             .load(product.largeIcon)
                             .into(productImage);
-                });
+
+                    amazonButton.setOnClickListener(v -> {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
+                    });
+                })
+                .didReachEnd(() -> getUserProducts(facebookUser, minPrice, maxPrice));
     }
 
     private void setStateSuccess(List<Product> products) {
-        dataSource.update(products);
+        adapter.update(products);
     }
 }
