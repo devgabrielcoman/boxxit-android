@@ -5,18 +5,20 @@ import com.boxxit.boxxit.library.network.NetworkTask;
 import com.boxxit.boxxit.library.parse.ParseBackendDataTask;
 import com.boxxit.boxxit.library.parse.models.Product;
 
+import java.util.List;
+
 import rx.Observable;
 import rx.Single;
 
 public class ProductsWorker {
 
-    public static Observable<Product> getProductsForUser(String id, int min, int max) {
+    public static Observable<List<Product>> getProductsForUser(String id, int min, int max) {
         NetworkRequest request = NetworkRequest.getProductsForUser(id, min, max);
         NetworkTask task = new NetworkTask();
         return task.execute(request)
                 .flatMap(s -> new ParseBackendDataTask().execute(s))
                 .toObservable()
-                .flatMap(productBackendData -> Observable.from(productBackendData.data));
+                .flatMap(productBackendData -> Observable.just(productBackendData.data));
     }
 
     public static Observable<Product> getFavouriteProductsForUser(String id) {

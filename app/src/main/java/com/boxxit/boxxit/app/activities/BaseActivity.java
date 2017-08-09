@@ -39,6 +39,11 @@ public class BaseActivity extends Activity {
         finish();
     }
 
+    public String getStringExtrasDirect(String key) {
+        Bundle bundle = BaseActivity.this.getIntent().getExtras();
+        return bundle != null ? bundle.getString(key) : null;
+    }
+
     public Single<String> getStringExtras (String key) {
         return Single.create(singleSubscriber -> {
 
