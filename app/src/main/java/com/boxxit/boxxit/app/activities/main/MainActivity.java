@@ -6,7 +6,9 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -38,6 +40,7 @@ public class MainActivity extends BaseActivity {
 
     //
     // views
+    private RelativeLayout errorView;
     private RecyclerView recyclerView;
     private RxAdapter adapter;
 
@@ -52,6 +55,7 @@ public class MainActivity extends BaseActivity {
                 .doOnSuccess(this::populateOwnProfileUI)
                 .map(profile -> profile.id)
                 .doOnSuccess(userId -> facebookUser = userId)
+                .doOnError(throwable -> Log.d("Boxxit", "Main Activity | " + throwable.getMessage()))
                 .subscribe(s -> getAllEvents(facebookUser, offset), this::setStateError);
     }
 
@@ -85,8 +89,17 @@ public class MainActivity extends BaseActivity {
                     return profiles;
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::setStateSuccess, this::setStateError);
+                .doOnError(throwable -> Log.e("Boxxit", "Main Activity | " + throwable.getMessage()))
+                .subscribe(this::populateEventsUI, this::setStateError);
 
+    }
+
+    void populateEventsUI (List<Profile> events) {
+        if (events.size() == 0) {
+            setStateEmpty();
+        } else {
+            setStateSuccess(events);
+        }
     }
 
     public void showMyGiftsAction (View view) {
@@ -107,6 +120,10 @@ public class MainActivity extends BaseActivity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void setStateInitial () {
+        //
+        // set the error & spinner view
+        errorView = (RelativeLayout) findViewById(R.id.ErrorView);
+
         //
         // initialize recycler
         recyclerView = (RecyclerView) findViewById(R.id.EventsRecyclerView);
@@ -133,6 +150,7 @@ public class MainActivity extends BaseActivity {
                 })
                 .didClickOnRow(Profile.class, (integer, profile) -> gotoNextScreen(profile.id))
                 .didReachEnd(() -> {
+                    Log.d("Boxxit", "Did reach end!");
                     if (offset != null) {
                         getAllEvents(facebookUser, offset);
                     }
@@ -140,11 +158,37 @@ public class MainActivity extends BaseActivity {
     }
 
     private void setStateSuccess(List<Profile> events) {
+        errorView.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
+
         adapter.update(events);
     }
 
-    // TODO: 07/08/2017 Handle error case
+    private void setStateEmpty () {
+
+        recyclerView.setVisibility(View.GONE);
+        errorView.setVisibility(View.VISIBLE);
+
+        Button retry = (Button) errorView.findViewById(R.id.RetryButton);
+        retry.setText(getString(R.string.activity_main_invite_btn_title));
+        retry.setOnClickListener(v -> {
+            // invite users
+        });
+
+        TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
+        errorTxt.setText(getString(R.string.activity_main_invite_nofriends_message));
+    }
+
     private void setStateError (Throwable throwable) {
-        // do nothing
+
+        recyclerView.setVisibility(View.GONE);
+        errorView.setVisibility(View.VISIBLE);
+
+        Button retry = (Button) errorView.findViewById(R.id.RetryButton);
+        retry.setText(getString(R.string.error_button_try_again));
+        retry.setOnClickListener(v -> getAllEvents(facebookUser, offset));
+
+        TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
+        errorTxt.setText(getString(R.string.activity_main_error));
     }
 }
