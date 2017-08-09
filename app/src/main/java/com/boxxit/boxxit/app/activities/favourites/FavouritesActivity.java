@@ -7,7 +7,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -26,7 +29,12 @@ import rx.android.schedulers.AndroidSchedulers;
 
 public class FavouritesActivity extends BaseActivity {
 
+    private RelativeLayout errorView;
+    private RecyclerView recyclerView;
     private RxAdapter adapter;
+    private ProgressBar spinner;
+
+    private String facebookUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,10 +48,9 @@ public class FavouritesActivity extends BaseActivity {
                 .doOnSuccess(this::populateProfileUI)
                 .toObservable()
                 .map(profile -> profile.id)
-                .flatMap(ProductsWorker::getFavouriteProductsForUser)
-                .toList()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(this::populateProductsUI, this::setStateError);
+                .doOnNext(userId -> facebookUser = userId)
+                .doOnError(throwable -> Log.e("Boxxit", "Favourites Activity: " + throwable.getMessage()))
+                .subscribe(this::getUserFavouriteProducts, this::setStateError);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,6 +74,15 @@ public class FavouritesActivity extends BaseActivity {
                 .into(profilePicture);
     }
 
+    void getUserFavouriteProducts (String userId) {
+        ProductsWorker.getFavouriteProductsForUser(userId)
+                .doOnSubscribe(this::setStateLoading)
+                .toList()
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(throwable -> Log.e("Boxxit", "Favourites Activity: " + throwable.getMessage()))
+                .subscribe(this::populateProductsUI, this::setStateError);
+    }
+
     void populateProductsUI (List<Product> products) {
         if (products.size() == 0) {
             setStateEmpty();
@@ -84,7 +100,15 @@ public class FavouritesActivity extends BaseActivity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void setStateInitial () {
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.FavouritesRecyclerView);
+
+        //
+        // set the error & spinner view
+        errorView = (RelativeLayout) findViewById(R.id.ErrorView);
+        spinner = (ProgressBar) findViewById(R.id.Spinner);
+
+        //
+        // set the recycler
+        recyclerView = (RecyclerView) findViewById(R.id.FavouritesRecyclerView);
         adapter = RxAdapter.create()
                 .bindTo(recyclerView)
                 .setLayoutManger(new LinearLayoutManager(getApplicationContext()))
@@ -106,17 +130,40 @@ public class FavouritesActivity extends BaseActivity {
                 });
     }
 
+    private void setStateLoading () {
+        spinner.setVisibility(View.VISIBLE);
+        errorView.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
+    }
+
     private void setStateSuccess (List<Product> products) {
+        spinner.setVisibility(View.GONE);
+        errorView.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
+
         adapter.update(products);
     }
 
-    // TODO: 07/08/2017 Handle error case
     private void setStateError (Throwable throwable) {
-        Log.d("Boxxit", "Error is " + throwable.getMessage());
+        recyclerView.setVisibility(View.GONE);
+        spinner.setVisibility(View.GONE);
+        errorView.setVisibility(View.VISIBLE);
+
+        TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
+        errorTxt.setText(getString(R.string.activity_favourites_error));
+
+        Button retry = (Button) errorView.findViewById(R.id.RetryButton);
+        retry.setOnClickListener(v -> getUserFavouriteProducts(facebookUser));
     }
 
-    // TODO: 07/08/2017 Handle Empty case
     private void setStateEmpty () {
-        Log.d("Boxxit", "User hsa no products");
+        recyclerView.setVisibility(View.GONE);
+        spinner.setVisibility(View.GONE);
+        errorView.setVisibility(View.VISIBLE);
+
+        Button retry = (Button) errorView.findViewById(R.id.RetryButton);
+        retry.setVisibility(View.GONE);
+        TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
+        errorTxt.setText(getString(R.string.activity_favourites_no_products));
     }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
@@ -79,9 +79,24 @@
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/ProductsRecyclerView"
+        android:layout_below="@+id/SmallHeader"
         android:scrollbars="none"
         android:background="#ffffff"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-</LinearLayout>
+    <include
+        layout="@layout/view_error"
+        android:id="@+id/ErrorView"
+        android:visibility="gone"
+        android:layout_below="@+id/SmallHeader"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <ProgressBar
+        android:id="@+id/Spinner"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>

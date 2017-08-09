@@ -5,4 +5,5 @@ import java.util.List;
 
 public class FacebookData {
     public List<Profile> data = new ArrayList<>();
+    public Paging paging;
 }

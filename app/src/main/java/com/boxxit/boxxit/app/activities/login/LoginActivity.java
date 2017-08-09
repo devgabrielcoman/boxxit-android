@@ -11,10 +11,14 @@ import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.load.LoadActivity;
 import com.boxxit.boxxit.app.activities.main.MainActivity;
+import com.boxxit.boxxit.app.views.CustomAlert;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.auth.FacebookAuthRequest;
 import com.boxxit.boxxit.library.auth.FacebookAuthTask;
 import com.boxxit.boxxit.workers.UserWorker;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class LoginActivity extends BaseActivity {
 
@@ -86,10 +90,17 @@ public class LoginActivity extends BaseActivity {
         loginButton.setVisibility(View.VISIBLE);
     }
 
-    // TODO: 07/08/2017 Add error popup
     private void setStateError (Throwable throwable) {
         spinner.setVisibility(View.GONE);
         loginButton.setVisibility(View.VISIBLE);
-        Log.d("Boxxit", "Error is " + throwable.getMessage());
+        CustomAlert.shared()
+                .show(this,
+                        getString(R.string.alert_auth_error_title),
+                        getString(R.string.alert_auth_error_message),
+                        getString(R.string.alert_ok),
+                        null)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(integer -> Log.e("Boxxit", "Login Activity: " + throwable.getMessage()));
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,20 +13,32 @@ import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
 import com.boxxit.boxxit.datastore.DataStore;
+import com.boxxit.boxxit.library.parse.models.Product;
+import com.boxxit.boxxit.library.parse.models.facebook.FacebookData;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 
 public class MainActivity extends BaseActivity {
 
+    //
+    // other vars
     private String facebookUser;
+    private String offset;
+
+    //
+    // views
+    private RecyclerView recyclerView;
     private RxAdapter adapter;
 
     @Override
@@ -39,7 +52,7 @@ public class MainActivity extends BaseActivity {
                 .doOnSuccess(this::populateOwnProfileUI)
                 .map(profile -> profile.id)
                 .doOnSuccess(userId -> facebookUser = userId)
-                .subscribe(this::getAllEvents, this::setStateError);
+                .subscribe(s -> getAllEvents(facebookUser, offset), this::setStateError);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,9 +75,15 @@ public class MainActivity extends BaseActivity {
                 .into(profilePicture);
     }
 
-    void getAllEvents (String userId) {
-        UserWorker.getEventsForUser(userId, null)
+    void getAllEvents (String userId, String off) {
+        UserWorker.getEventsForUser(userId, off)
+                .doOnSuccess(facebookData -> offset = facebookData.paging.offsetAfter())
                 .flatMap(facebookData -> Single.just(facebookData.data))
+                .toObservable()
+                .reduce(new ArrayList<Profile>(), (profiles, profiles2) -> {
+                    profiles.addAll(profiles2);
+                    return profiles;
+                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(this::setStateSuccess, this::setStateError);
 
@@ -88,7 +107,9 @@ public class MainActivity extends BaseActivity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void setStateInitial () {
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.EventsRecyclerView);
+        //
+        // initialize recycler
+        recyclerView = (RecyclerView) findViewById(R.id.EventsRecyclerView);
         adapter = RxAdapter.create()
                 .bindTo(recyclerView)
                 .setLayoutManger(new GridLayoutManager(getApplicationContext(), 2))
@@ -97,7 +118,9 @@ public class MainActivity extends BaseActivity {
                     ImageView profilePicture = (ImageView) view.findViewById(R.id.ProfilePicture);
                     TextView profileName = (TextView) view.findViewById(R.id.ProfileName);
                     TextView profileBirthday = (TextView) view.findViewById(R.id.ProfileBirthday);
+                    View rightSeparator = (View) view.findViewById(R.id.RightSeparator);
 
+                    rightSeparator.setVisibility(position % 2 == 0 ? View.VISIBLE : View.GONE);
                     profileName.setText(profile.name);
                     profileBirthday.setText(profile.birthday);
 
@@ -110,7 +133,9 @@ public class MainActivity extends BaseActivity {
                 })
                 .didClickOnRow(Profile.class, (integer, profile) -> gotoNextScreen(profile.id))
                 .didReachEnd(() -> {
-
+                    if (offset != null) {
+                        getAllEvents(facebookUser, offset);
+                    }
                 });
     }
 

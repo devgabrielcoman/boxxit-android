@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="177dp"
     android:background="@color/white">
 
     <ImageView
@@ -15,21 +15,23 @@
         android:layout_marginTop="10dp"
         android:layout_below="@+id/ProfilePicture"
         android:textAlignment="center"
+        android:lines="1"
         android:textStyle="bold"
         android:textColor="@color/text_medium"
         android:text="@string/activity_main_name_placeholder"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="20dp" />
     <TextView
         android:id="@+id/ProfileBirthday"
         android:layout_marginTop="6dp"
+        android:lines="1"
         android:layout_marginBottom="24dp"
         android:layout_below="@+id/ProfileName"
         android:textAlignment="center"
         android:textColor="@color/text_medium"
         android:text="@string/activity_main_birthday_placeholder"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="16dp" />
     <View
         android:id="@+id/BottomSeparator"
         android:layout_below="@+id/ProfileBirthday"
@@ -39,8 +41,9 @@
     <View
         android:id="@+id/RightSeparator"
         android:layout_width="1dp"
+        android:background="@color/separator"
         android:layout_height="wrap_content"
-        android:layout_toStartOf="@+id/BottomSeparator"
-        android:layout_toEndOf="@+id/BottomSeparator"/>
+        android:layout_alignEnd="@+id/BottomSeparator"
+        android:layout_toStartOf="@+id/BottomSeparator"/>
 
 </RelativeLayout>

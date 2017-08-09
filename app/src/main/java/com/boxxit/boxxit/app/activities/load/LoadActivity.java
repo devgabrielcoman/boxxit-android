@@ -7,8 +7,11 @@ import android.util.Log;
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.main.MainActivity;
+import com.boxxit.boxxit.app.views.CustomAlert;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.workers.UserWorker;
+
+import rx.android.schedulers.AndroidSchedulers;
 
 public class LoadActivity extends BaseActivity {
 
@@ -42,8 +45,16 @@ public class LoadActivity extends BaseActivity {
     // State Logic
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // TODO: 07/08/2017 Add error popup
     void setStateError (Throwable throwable) {
-        Log.d("Boxxit", "Error is: " + throwable.getMessage());
+        CustomAlert.shared()
+                .show(this,
+                    getString(R.string.alert_network_error_title),
+                    getString(R.string.alert_network_error_message),
+                    getString(R.string.alert_try_again),
+                    null)
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess(integer -> Log.e("Boxxit", "Load Activity: " + throwable.getMessage()))
+                .subscribe(integer -> loadUser());
     }
 }

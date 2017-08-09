@@ -24,8 +24,21 @@
     <string name="activity_explore_product_name_placeholder">This is\nproduct</string>
     <string name="activity_explore_product_reason_you">Recommended because you like %1$s</string>
     <string name="activity_explore_product_reason_friend">Recommended because your friend likes %1$s</string>
+    <string name="activity_explore_error">Error trying to get gifts!</string>
 
     <!-- favourites -->
     <string name="activity_favourites_product_name_placeholder">This is\nproduct</string>
     <string name="activity_favourites_product_price_placeholder">£23.5</string>
+    <string name="activity_favourites_no_products">No currenlty saved products.</string>
+    <string name="activity_favourites_error">Error trying to get friends favourite products</string>
+
+    <!-- alerts & errors -->
+    <string name="alert_network_error_title">Oops!</string>
+    <string name="alert_network_error_message">Seems there was an error trying to get your data.</string>
+    <string name="alert_auth_error_title">Oops!</string>
+    <string name="alert_auth_error_message">We couldn\'t log you in!</string>
+    <string name="alert_ok">OK!</string>
+    <string name="alert_try_again">Try Again</string>
+    <string name="alert_cancel">Cancel</string>
+    <string name="error_button_try_again">Retry</string>
 </resources>
