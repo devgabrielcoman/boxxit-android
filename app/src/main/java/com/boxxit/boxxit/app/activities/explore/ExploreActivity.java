@@ -107,8 +107,7 @@ public class ExploreActivity extends BaseActivity {
 
         //
         // state updates observer
-        Observable<ExploreUIState> state = events.compose(transformer)
-                .scan(initialState, this::stateReducer);
+        Observable<ExploreUIState> state = events.compose(transformer).scan(initialState, this::stateReducer);
 
         //
         // UI updates
@@ -148,7 +147,7 @@ public class ExploreActivity extends BaseActivity {
         } else if (state.error != null) {
             updateErrorUI(state.error);
         } else {
-            updateInitialUI(null);
+            updateInitialUI(getStringExtrasDirect("profile"));
         }
     }
 
