@@ -1,4 +1,4 @@
-package com.boxxit.boxxit.app.activities.explore.events;
+package com.boxxit.boxxit.app.events;
 
 public class ClickEvent extends UIEvent {
 
