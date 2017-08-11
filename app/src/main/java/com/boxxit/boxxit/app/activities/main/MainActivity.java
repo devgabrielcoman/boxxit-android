@@ -13,11 +13,8 @@ import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
-import com.boxxit.boxxit.app.activities.explore.Explore2Activity;
 import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
 import com.boxxit.boxxit.datastore.DataStore;
-import com.boxxit.boxxit.library.parse.models.Product;
-import com.boxxit.boxxit.library.parse.models.facebook.FacebookData;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
@@ -29,8 +26,6 @@ import java.util.List;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
-import rx.functions.Action1;
 
 public class MainActivity extends BaseActivity {
 
@@ -112,7 +107,7 @@ public class MainActivity extends BaseActivity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     void gotoNextScreen (String profile) {
-        Intent intent = new Intent(this, Explore2Activity.class);
+        Intent intent = new Intent(this, ExploreActivity.class);
         intent.putExtra("profile", profile);
         startActivity(intent);
     }

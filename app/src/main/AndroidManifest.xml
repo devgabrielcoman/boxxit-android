@@ -48,7 +48,7 @@
             android:name=".app.activities.load.LoadActivity"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".app.activities.explore.Explore2Activity"
+            android:name=".app.activities.explore.ExploreActivity"
             android:screenOrientation="portrait"/>
         <activity
             android:name=".app.activities.favourites.FavouritesActivity"

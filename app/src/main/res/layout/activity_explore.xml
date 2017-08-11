@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:background="@color/white"
-    tools:context="com.boxxit.boxxit.app.activities.explore.Explore2Activity">
+    tools:context="com.boxxit.boxxit.app.activities.explore.ExploreActivity">
 
     <RelativeLayout
         android:id="@+id/SmallHeader"

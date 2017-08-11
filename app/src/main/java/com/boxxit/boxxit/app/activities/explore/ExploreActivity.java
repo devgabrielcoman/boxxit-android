@@ -11,50 +11,51 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
-import com.boxxit.boxxit.aux.Logger;
+import com.boxxit.boxxit.app.events.AppendEvent;
+import com.boxxit.boxxit.app.events.ClickEvent;
+import com.boxxit.boxxit.app.events.InitEvent;
+import com.boxxit.boxxit.app.events.UIEvent;
+import com.boxxit.boxxit.app.results.LoadProductsResult;
+import com.boxxit.boxxit.app.results.LoadProfileResult;
+import com.boxxit.boxxit.app.results.Result;
+import com.boxxit.boxxit.app.views.ErrorView;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.Product;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.ProductsWorker;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
+import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 import rx.subjects.PublishSubject;
 
 public class ExploreActivity extends BaseActivity {
 
-    private String facebookUser = "me";
-    private int minPrice = 500;
-    private int maxPrice = 5000;
-
-    @BindView(R.id.ErrorView) RelativeLayout errorView;
+    @BindView(R.id.ErrorView) ErrorView errorView;
     @BindView(R.id.Spinner) ProgressBar spinner;
     @BindView(R.id.ProductsRecyclerView) RecyclerView recyclerView;
 
+    @BindView(R.id.ProfilePicture) ImageView profilePicture;
+    @BindView(R.id.ProfileName) TextView profileName;
+    @BindView(R.id.ProfileBirthday) TextView profileBirthday;
+    @BindView(R.id.SeeLikesButton) ImageButton seeLikes;
+
+    PublishSubject<AppendEvent> append;
     private RxAdapter adapter;
-
-    private PublishSubject<Void> subject;
-
-    @BindString(R.string.activity_explore_product_reason_you) String reasonYou;
-    @BindString(R.string.activity_explore_product_reason_friend) String reasonFriend;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,183 +63,190 @@ public class ExploreActivity extends BaseActivity {
         setContentView(R.layout.activity_explore);
         ButterKnife.bind(this);
 
-        String fbUser = getStringExtrasDirect("profile");
+        //
+        // get pre-determined values
+        String userId = getStringExtrasDirect("profile");
+        int minPrice = 500;
+        int maxPrice = 5000;
 
         //
-        // 1. have some events coming from the UI
-        //      - get incoming string event
-        //      - click ==> retry event
+        // initial state
+        ExploreUIState initialState = ExploreUIState.initial();
+
         //
-        // 2. have a model to represent the
-        //      - profile state  - HeaderUIModel
-        //          - in progress, success, error
-        //      - products state - ProductListUIModel
-        //          - in progress, success, error
+        // streams of either UI events or automated (initial) events
+        Observable<InitEvent> init = Observable.just(new InitEvent());
+        Observable<ClickEvent> retries = RxView.clicks(errorView.retry).map(ClickEvent::new);
+        append = PublishSubject.create();
+        Observable<UIEvent> events = Observable.merge(init, retries, append);
 
-        UserWorker.getProfile(fbUser)
-                .doOnSubscribe(() -> setState(ExploreState.initial))
-                .map(ExploreState.update_profile::withProfile)
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(Logger::logError)
-                .onErrorResumeNext(throwable -> Single.just(ExploreState.update_profile.withProfile(new Profile())))
-                .subscribe(this::setState);
+        //
+        // products transformer
+        Observable.Transformer<InitEvent, LoadProfileResult> profileTransformer = initEventObservable -> events
+                .flatMap(uiEvent -> UserWorker.getProfile(userId).toObservable())
+                .map(LoadProfileResult::success)
+                .onErrorReturn(LoadProfileResult::error)
+                .observeOn(AndroidSchedulers.mainThread());
 
-        subject = PublishSubject.create();
-        subject.asObservable()
-                .doOnNext(aVoid -> setState(ExploreState.loading))
-                .flatMap(aVoid -> ProductsWorker.getProductsForUser(fbUser, minPrice, maxPrice)
-                        .map(ExploreState.update_products::withProducts)
-                        .doOnError(Logger::logError)
-                        .onErrorResumeNext(throwable -> Observable.just(ExploreState.error)))
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(exploreState -> setState(ExploreState.not_loading))
-                .subscribe(this::setState);
+        //
+        // product transformer
+        Observable.Transformer<UIEvent, LoadProductsResult> productsTransformer = uiEventObservable -> events
+                .flatMap(uiEvent -> ProductsWorker.getProductsForUser(userId, minPrice, maxPrice).asObservable()
+                        .map(LoadProductsResult::success)
+                        .onErrorReturn(LoadProductsResult::error)
+                        .startWith(LoadProductsResult.LOADING))
+                .observeOn(AndroidSchedulers.mainThread());
 
-        subject.onNext(null);
+        //
+        // merged transformer and scan into state
+        Observable.Transformer<UIEvent, Result> transformer =
+                evt -> evt.publish(evt1 -> Observable.merge(
+                    evt1.ofType(InitEvent.class).compose(profileTransformer),
+                    evt1.ofType(UIEvent.class).compose(productsTransformer)
+                ));
+
+        //
+        // state updates observer
+        Observable<ExploreUIState> state = events.compose(transformer)
+                .scan(initialState, this::stateReducer);
+
+        //
+        // UI updates
+        state.subscribe(this::updateUI, throwable -> Log.e("Boxxit", "Error is " + throwable.getMessage()));
     }
 
-    public void backAction (View view) {
-        this.finishOK();
+    private ExploreUIState stateReducer (ExploreUIState previousState, Result result) {
+        if (result instanceof LoadProfileResult) {
+            if (result == LoadProfileResult.SUCCESS) {
+                return ExploreUIState.profileSuccess(((LoadProfileResult) result).profile);
+            } else {
+                return ExploreUIState.error(((LoadProfileResult) result).throwable);
+            }
+        }
+        else if (result instanceof LoadProductsResult) {
+            if (result == LoadProductsResult.SUCCESS) {
+                return ExploreUIState.productsSuccess(((LoadProductsResult) result).products);
+            } else if (result == LoadProductsResult.LOADING) {
+                return ExploreUIState.isLoading();
+            } else {
+                return ExploreUIState.error(((LoadProductsResult) result).throwable);
+            }
+        }
+        else {
+            return previousState;
+        }
     }
 
-    public void gotoNextScreen (View view) {
+    public void updateUI (ExploreUIState state) {
+
+        if (state.isLoading) {
+            updateLoadingUI();
+        } else if (state.profileSuccess) {
+            updateProfileUI(state.profile);
+        } else if (state.productSuccess && state.products != null) {
+            updateProductsUI(state.products);
+        } else if (state.error != null) {
+            updateErrorUI(state.error);
+        } else {
+            updateInitialUI(null);
+        }
+    }
+
+    private void gotoBack () {
+        finishOK();
+    }
+
+    private void gotoFavourites (String facebookUser) {
         Intent intent = new Intent(this, FavouritesActivity.class);
         intent.putExtra("profile", facebookUser);
         startActivity(intent);
     }
 
-    private void setState (ExploreState state) {
-        switch (state) {
-            case initial: {
-                adapter = RxAdapter.create()
-                        .bindTo(recyclerView)
-                        .setLayoutManger(new LinearLayoutManager(getApplicationContext()))
-                        .customizeRow(R.layout.row_product, Product.class, (position, view, product, total) -> {
-
-                            TextView productName = (TextView) view.findViewById(R.id.ProductName);
-                            TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
-                            TextView productReason = (TextView) view.findViewById(R.id.ProductReason);
-                            ImageButton likeProduct = (ImageButton) view.findViewById(R.id.LikeButton);
-                            ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
-                            Button amazonButton = (Button) view.findViewById(R.id.AmazonBtn);
-
-                            productName.setText(product.title);
-                            productPrice.setText(product.price);
-                            productReason.setText(getString(this.facebookUser.equals(DataStore.getOwnId()) ?
-                                            R.string.activity_explore_product_reason_you :
-                                            R.string.activity_explore_product_reason_friend,
-                                    product.categId));
-                            likeProduct.setVisibility(this.facebookUser.equals(DataStore.getOwnId()) ? View.VISIBLE : View.GONE);
-                            likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
-
-                            Picasso.with(ExploreActivity.this)
-                                    .load(product.largeIcon)
-                                    .into(productImage);
-
-                            //
-                            // when clicking on the amazon button
-                            amazonButton.setOnClickListener(v -> {
-                                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
-                            });
-
-                            //
-                            // when clicking on the heart button
-
-                            likeProduct.setOnClickListener(v -> {
-
-                                Single<Void> rxOperation = product.isFavourite ?
-                                        ProductsWorker.deleteFavouriteProduct(product.asin, facebookUser):
-                                        ProductsWorker.saveFavouriteProduct(product.asin, facebookUser);
-
-                                rxOperation
-                                        .doOnSubscribe(() -> {
-                                            product.isFavourite = !product.isFavourite;
-                                            likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
-                                        })
-                                        .flatMap(aVoid -> rxOperation)
-                                        .subscribe(aVoid -> {
-                                            // do nothing
-                                        }, throwable -> {
-                                            product.isFavourite = !product.isFavourite;
-                                            likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
-                                        });
-                            });
-                        })
-                        .didReachEnd(() -> subject.onNext(null));
-                break;
-            }
-            case loading: {
-                spinner.setVisibility(View.VISIBLE);
-                errorView.setVisibility(View.GONE);
-                break;
-            }
-            case not_loading: {
-                spinner.setVisibility(View.GONE);
-                break;
-            }
-            case error: {
-                recyclerView.setVisibility(View.GONE);
-                spinner.setVisibility(View.GONE);
-                errorView.setVisibility(View.VISIBLE);
-
-//                ButterKnife.bind(this, errorView);
-
-                TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
-                errorTxt.setText(getString(R.string.activity_explore_error));
-
-                Button retry = (Button) errorView.findViewById(R.id.RetryButton);
-                retry.setOnClickListener(v -> {
-                    Log.d("Boxxit", "Trying again!");
-                    subject.onNext(null);
-                });
-                break;
-            }
-            case update_products: {
-                spinner.setVisibility(View.GONE);
-                errorView.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-                adapter.add(state.products);
-                break;
-            }
-            case update_profile: {
-                Profile profile = state.profile;
-                ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);
-                TextView profileName = (TextView) findViewById(R.id.ProfileName);
-                TextView profileBirthday = (TextView) findViewById(R.id.ProfileBirthday);
-
-                profileName.setText(profile.name);
-                profileBirthday.setText(profile.birthday);
-
-                Picasso.with(ExploreActivity.this)
-                        .load(profile.picture.data.url)
-                        .placeholder(R.drawable.ic_user_default)
-                        .error(R.drawable.ic_user_default)
-                        .transform(new CropCircleTransformation())
-                        .into(profilePicture);
-                break;
-            }
-        }
+    private void updateLoadingUI () {
+        spinner.setVisibility(View.VISIBLE);
+        errorView.setVisibility(View.GONE);
     }
 
-    public enum ExploreState {
-        initial,
-        loading,
-        not_loading,
-        error,
-        update_products,
-        update_profile;
+    private void updateProfileUI (Profile profile) {
+        profileName.setText(profile.name);
+        profileBirthday.setText(profile.birthday);
 
-        private Profile profile;
-        private List<Product> products = new ArrayList<>();
+        Picasso.with(ExploreActivity.this)
+                .load(profile.picture.data.url)
+                .placeholder(R.drawable.ic_user_default)
+                .error(R.drawable.ic_user_default)
+                .transform(new CropCircleTransformation())
+                .into(profilePicture);
+    }
 
-        public ExploreState withProfile(Profile profile) {
-            this.profile = profile;
-            return this;
-        }
+    private void updateProductsUI (List<Product> products) {
+        spinner.setVisibility(View.GONE);
+        errorView.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
+        adapter.add(products);
+    }
 
-        public ExploreState withProducts(List<Product> products) {
-            this.products = products;
-            return this;
-        }
+    private void updateErrorUI (Throwable throwable) {
+        errorView.setVisibility(View.VISIBLE);
+        spinner.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
+    }
+
+    private void updateInitialUI (String facebookUser) {
+        adapter = RxAdapter.create()
+                .bindTo(recyclerView)
+                .setLayoutManger(new LinearLayoutManager(getApplicationContext()))
+                .customizeRow(R.layout.row_product, Product.class, (position, view, product, total) -> {
+
+                    TextView productName = (TextView) view.findViewById(R.id.ProductName);
+                    TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
+                    TextView productReason = (TextView) view.findViewById(R.id.ProductReason);
+                    ImageButton likeProduct = (ImageButton) view.findViewById(R.id.LikeButton);
+                    ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
+                    Button amazonButton = (Button) view.findViewById(R.id.AmazonBtn);
+
+                    productName.setText(product.title);
+                    productPrice.setText(product.price);
+                    productReason.setText(getString(facebookUser.equals(DataStore.getOwnId()) ?
+                                    R.string.activity_explore_product_reason_you :
+                                    R.string.activity_explore_product_reason_friend,
+                            product.categId));
+                    likeProduct.setVisibility(facebookUser.equals(DataStore.getOwnId()) ? View.VISIBLE : View.GONE);
+                    likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
+
+                    Picasso.with(ExploreActivity.this)
+                            .load(product.largeIcon)
+                            .into(productImage);
+
+                    //
+                    // when clicking on the amazon button
+                    amazonButton.setOnClickListener(v -> {
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
+                    });
+
+                    //
+                    // when clicking on the heart button
+
+                    likeProduct.setOnClickListener(v -> {
+
+                        Single<Void> rxOperation = product.isFavourite ?
+                                ProductsWorker.deleteFavouriteProduct(product.asin, facebookUser):
+                                ProductsWorker.saveFavouriteProduct(product.asin, facebookUser);
+
+                        rxOperation
+                                .doOnSubscribe(() -> {
+                                    product.isFavourite = !product.isFavourite;
+                                    likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
+                                })
+                                .flatMap(aVoid -> rxOperation)
+                                .subscribe(aVoid -> {
+                                    // do nothing
+                                }, throwable -> {
+                                    product.isFavourite = !product.isFavourite;
+                                    likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
+                                });
+                    });
+                })
+                .didReachEnd(() -> append.onNext(null));
     }
 }
