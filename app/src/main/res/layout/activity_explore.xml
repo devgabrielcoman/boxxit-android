@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:background="@color/white"
-    tools:context="com.boxxit.boxxit.app.activities.explore.ExploreActivity">
+    tools:context="com.boxxit.boxxit.app.activities.explore.Explore2Activity">
 
     <RelativeLayout
         android:id="@+id/SmallHeader"
@@ -85,8 +85,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <include
-        layout="@layout/view_error"
+    <com.boxxit.boxxit.app.views.ErrorView
         android:id="@+id/ErrorView"
         android:visibility="gone"
         android:layout_below="@+id/SmallHeader"

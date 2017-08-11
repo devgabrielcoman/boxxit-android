@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
+import com.boxxit.boxxit.app.activities.explore.Explore2Activity;
 import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.Product;
@@ -111,7 +112,7 @@ public class MainActivity extends BaseActivity {
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     void gotoNextScreen (String profile) {
-        Intent intent = new Intent(this, ExploreActivity.class);
+        Intent intent = new Intent(this, Explore2Activity.class);
         intent.putExtra("profile", profile);
         startActivity(intent);
     }

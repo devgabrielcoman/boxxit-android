@@ -3,7 +3,6 @@ package com.boxxit.boxxit.app.activities.explore;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -18,8 +17,8 @@ import android.widget.TextView;
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
+import com.boxxit.boxxit.aux.Logger;
 import com.boxxit.boxxit.datastore.DataStore;
-import com.boxxit.boxxit.library.base.State;
 import com.boxxit.boxxit.library.parse.models.Product;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.ProductsWorker;
@@ -30,16 +29,14 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindString;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.Single;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action0;
 import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
 
 public class ExploreActivity extends BaseActivity {
@@ -48,44 +45,53 @@ public class ExploreActivity extends BaseActivity {
     private int minPrice = 500;
     private int maxPrice = 5000;
 
-    private RelativeLayout errorView;
-    private RecyclerView recyclerView;
-    private ProgressBar spinner;
+    @BindView(R.id.ErrorView) RelativeLayout errorView;
+    @BindView(R.id.Spinner) ProgressBar spinner;
+    @BindView(R.id.ProductsRecyclerView) RecyclerView recyclerView;
+
     private RxAdapter adapter;
 
     private PublishSubject<Void> subject;
+
+    @BindString(R.string.activity_explore_product_reason_you) String reasonYou;
+    @BindString(R.string.activity_explore_product_reason_friend) String reasonFriend;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_explore);
-
-        errorView = (RelativeLayout) findViewById(R.id.ErrorView);
-        spinner = (ProgressBar) findViewById(R.id.Spinner);
-        recyclerView = (RecyclerView) findViewById(R.id.ProductsRecyclerView);
+        ButterKnife.bind(this);
 
         String fbUser = getStringExtrasDirect("profile");
 
         //
-        // get profile
+        // 1. have some events coming from the UI
+        //      - get incoming string event
+        //      - click ==> retry event
+        //
+        // 2. have a model to represent the
+        //      - profile state  - HeaderUIModel
+        //          - in progress, success, error
+        //      - products state - ProductListUIModel
+        //          - in progress, success, error
+
         UserWorker.getProfile(fbUser)
                 .doOnSubscribe(() -> setState(ExploreState.initial))
                 .map(ExploreState.update_profile::withProfile)
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(throwable -> Log.e("Boxxit", "Explore Activity: " + throwable.getMessage()))
+                .doOnError(Logger::logError)
                 .onErrorResumeNext(throwable -> Single.just(ExploreState.update_profile.withProfile(new Profile())))
                 .subscribe(this::setState);
 
-        //
-        // get products
         subject = PublishSubject.create();
         subject.asObservable()
                 .doOnNext(aVoid -> setState(ExploreState.loading))
                 .flatMap(aVoid -> ProductsWorker.getProductsForUser(fbUser, minPrice, maxPrice)
                         .map(ExploreState.update_products::withProducts)
-                        .doOnError(throwable -> Log.e("Boxxit", "Explore Activity " + throwable.getMessage()))
+                        .doOnError(Logger::logError)
                         .onErrorResumeNext(throwable -> Observable.just(ExploreState.error)))
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(exploreState -> setState(ExploreState.not_loading))
                 .subscribe(this::setState);
 
         subject.onNext(null);
@@ -166,10 +172,16 @@ public class ExploreActivity extends BaseActivity {
                 errorView.setVisibility(View.GONE);
                 break;
             }
+            case not_loading: {
+                spinner.setVisibility(View.GONE);
+                break;
+            }
             case error: {
                 recyclerView.setVisibility(View.GONE);
                 spinner.setVisibility(View.GONE);
                 errorView.setVisibility(View.VISIBLE);
+
+//                ButterKnife.bind(this, errorView);
 
                 TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
                 errorTxt.setText(getString(R.string.activity_explore_error));
@@ -211,6 +223,7 @@ public class ExploreActivity extends BaseActivity {
     public enum ExploreState {
         initial,
         loading,
+        not_loading,
         error,
         update_products,
         update_profile;

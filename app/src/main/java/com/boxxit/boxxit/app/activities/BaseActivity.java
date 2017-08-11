@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import butterknife.ButterKnife;
 import rx.Single;
 import rx.functions.Action0;
 import rx.functions.Action3;
