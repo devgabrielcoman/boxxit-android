@@ -21,13 +21,13 @@ public class ProductsWorker {
                 .flatMap(productBackendData -> Observable.just(productBackendData.data));
     }
 
-    public static Observable<Product> getFavouriteProductsForUser(String id) {
+    public static Observable<List<Product>> getFavouriteProductsForUser(String id) {
         NetworkRequest request = NetworkRequest.getFavouriteProductsForUser(id);
         NetworkTask task = new NetworkTask();
         return task.execute(request)
                 .flatMap(s -> new ParseBackendDataTask().execute(s))
                 .toObservable()
-                .flatMap(productBackendData -> Observable.from(productBackendData.data));
+                .flatMap(productBackendData -> Observable.just(productBackendData.data));
     }
 
     public static Single<Void> saveFavouriteProduct(String asin, String id) {

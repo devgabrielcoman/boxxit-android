@@ -7,62 +7,171 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
+import com.boxxit.boxxit.app.events.BackClickEvent;
+import com.boxxit.boxxit.app.events.InitEvent;
+import com.boxxit.boxxit.app.events.RetryClickEvent;
+import com.boxxit.boxxit.app.events.UIEvent;
+import com.boxxit.boxxit.app.results.LoadProductsResult;
+import com.boxxit.boxxit.app.results.LoadProfileResult;
+import com.boxxit.boxxit.app.results.NavigateResult;
+import com.boxxit.boxxit.app.results.Result;
+import com.boxxit.boxxit.app.views.ErrorView;
 import com.boxxit.boxxit.library.parse.models.Product;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.ProductsWorker;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
+import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 
 public class FavouritesActivity extends BaseActivity {
 
-    private RelativeLayout errorView;
-    private RecyclerView recyclerView;
-    private RxAdapter adapter;
-    private ProgressBar spinner;
+    @BindView(R.id.ErrorView) ErrorView errorView;
+    @BindView(R.id.Spinner) ProgressBar spinner;
+    @BindView(R.id.FavouritesRecyclerView) RecyclerView recyclerView;
 
-    private String facebookUser;
+    @BindView(R.id.ProfilePicture) ImageView profilePicture;
+    @BindView(R.id.ProfileName) TextView profileName;
+    @BindView(R.id.ProfileBirthday) TextView profileBirthday;
+    @BindView(R.id.BackButton) ImageButton backButton;
+
+    private RxAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favourites);
+        ButterKnife.bind(this);
 
-        getStringExtras("profile")
-                .doOnSubscribe(this::setStateInitial)
-                .flatMap(UserWorker::getProfile)
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess(this::populateProfileUI)
-                .toObservable()
-                .map(profile -> profile.id)
-                .doOnNext(userId -> facebookUser = userId)
-                .doOnError(throwable -> Log.e("Boxxit", "Favourites Activity: " + throwable.getMessage()))
-                .subscribe(this::getUserFavouriteProducts, this::setStateError);
+        //
+        // get pre-determined values
+        String userId = getStringExtrasDirect("profile");
+
+        Observable<InitEvent> init = Observable.just(new InitEvent());
+        Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
+        Observable<BackClickEvent> back = RxView.clicks(backButton).map(BackClickEvent::new);
+        Observable<UIEvent> events = Observable.merge(init, retries, back);
+
+        //
+        // initial state
+        FavouritesUIState initialState = FavouritesUIState.initial();
+
+        //
+        // profile transformer
+        Observable.Transformer<InitEvent, LoadProfileResult> profileTransformer = initEventObservable -> init
+                .flatMap(initEvent -> UserWorker.getProfile(userId).toObservable())
+                .map(LoadProfileResult::success)
+                .onErrorReturn(LoadProfileResult::error)
+                .observeOn(AndroidSchedulers.mainThread());
+
+        //
+        // products transformer
+        Observable.Transformer<UIEvent, LoadProductsResult> productsTransformer = eventObservable -> events
+                .flatMap(uiEvent -> ProductsWorker.getFavouriteProductsForUser(userId).asObservable()
+                        .map(LoadProductsResult::success)
+                        .onErrorReturn(LoadProductsResult::error)
+                        .startWith(LoadProductsResult.LOADING))
+                .observeOn(AndroidSchedulers.mainThread());
+
+        //
+        // navigation transformers
+        Observable.Transformer<BackClickEvent, NavigateResult> backTransformer = backClickEventObservable -> back
+                .map(uiEvent -> NavigateResult.BACK)
+                .observeOn(AndroidSchedulers.mainThread());
+
+        //
+        // merged transformer and scan into state
+        Observable.Transformer<UIEvent, Result> transformer = eventObservable -> Observable.merge(
+                eventObservable.ofType(UIEvent.class).compose(productsTransformer),
+                eventObservable.ofType(InitEvent.class).compose(profileTransformer),
+                eventObservable.ofType(BackClickEvent.class).compose(backTransformer)
+        );
+
+        //
+        // state updates observer
+        Observable<FavouritesUIState> state = events.compose(transformer).scan(initialState, this::stateReducer);
+
+        //
+        // UI updates
+        state.subscribe(this::stateHandler, throwable -> Log.e("Boxxit", "Error is " + throwable.getMessage()));
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Business Logic
-    ////////////////////////////////////////////////////////////////////////////////////////////////
+    private FavouritesUIState stateReducer (FavouritesUIState previousState, Result result) {
+        if (result instanceof LoadProfileResult) {
+            if (result == LoadProfileResult.SUCCESS) {
+                return FavouritesUIState.profileSuccess(((LoadProfileResult) result).profile);
+            } else {
+                return FavouritesUIState.error(((LoadProfileResult) result).throwable);
+            }
+        }
+        else if (result instanceof LoadProductsResult) {
+            if (result == LoadProductsResult.SUCCESS) {
+                if (((LoadProductsResult) result).products.size() > 0) {
+                    return FavouritesUIState.productsSuccess(((LoadProductsResult) result).products);
+                } else {
+                    return FavouritesUIState.productsEmpty();
+                }
+            } else if (result == LoadProductsResult.LOADING) {
+                return FavouritesUIState.isLoading();
+            } else {
+                return FavouritesUIState.error(((LoadProductsResult) result).throwable);
+            }
+        }
+        else if (result instanceof NavigateResult) {
+            if (result == NavigateResult.BACK) {
+                return FavouritesUIState.gotoBack();
+            } else {
+                return previousState;
+            }
+        }
+        else {
+            return previousState;
+        }
+    }
 
-    void populateProfileUI (Profile profile) {
+    public void stateHandler(FavouritesUIState state) {
+        if (state.isLoading) {
+            updateLoadingUI();
+        } else if (state.profileSuccess) {
+            updateProfileUI(state.profile);
+        } else if (state.productSuccess && state.products != null) {
+            updateProductsUI(state.products);
+        } else if (state.productEmpty) {
+            updateEmptyUI();
+        } else if (state.error != null) {
+            updateErrorUI(state.error);
+        } else if (state.goBack) {
+            gotoBack();
+        } else {
+            updateInitialUI();
+        }
+    }
 
-        ImageView profilePicture = (ImageView) findViewById(R.id.ProfilePicture);
-        TextView profileName = (TextView) findViewById(R.id.ProfileName);
-        TextView profileBirthday = (TextView) findViewById(R.id.ProfileBirthday);
+    private void gotoBack () {
+        finishOK();
+    }
 
+    private void updateLoadingUI () {
+        spinner.setVisibility(View.VISIBLE);
+        errorView.setVisibility(View.GONE);
+    }
+
+    private void updateProfileUI (Profile profile) {
         profileName.setText(profile.name);
         profileBirthday.setText(profile.birthday);
 
@@ -74,41 +183,30 @@ public class FavouritesActivity extends BaseActivity {
                 .into(profilePicture);
     }
 
-    void getUserFavouriteProducts (String userId) {
-        ProductsWorker.getFavouriteProductsForUser(userId)
-                .doOnSubscribe(this::setStateLoading)
-                .toList()
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(throwable -> Log.e("Boxxit", "Favourites Activity: " + throwable.getMessage()))
-                .subscribe(this::populateProductsUI, this::setStateError);
+    private void updateProductsUI (List<Product> products) {
+        spinner.setVisibility(View.GONE);
+        errorView.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE);
+        adapter.add(products);
     }
 
-    void populateProductsUI (List<Product> products) {
-        if (products.size() == 0) {
-            setStateEmpty();
-        } else {
-            setStateSuccess(products);
-        }
+    private void updateErrorUI (Throwable throwable) {
+        errorView.setVisibility(View.VISIBLE);
+        spinner.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
+        errorView.errorText.setText(getString(R.string.activity_favourites_error));
+        errorView.retry.setVisibility(View.VISIBLE);
     }
 
-    public void backAction (View view) {
-        this.finishOK();
+    private void updateEmptyUI () {
+        errorView.setVisibility(View.VISIBLE);
+        spinner.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
+        errorView.errorText.setText(getString(R.string.activity_favourites_no_products));
+        errorView.retry.setVisibility(View.GONE);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // State Logic
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void setStateInitial () {
-
-        //
-        // set the error & spinner view
-        errorView = (RelativeLayout) findViewById(R.id.ErrorView);
-        spinner = (ProgressBar) findViewById(R.id.Spinner);
-
-        //
-        // set the recycler
-        recyclerView = (RecyclerView) findViewById(R.id.FavouritesRecyclerView);
+    private void updateInitialUI () {
         adapter = RxAdapter.create()
                 .bindTo(recyclerView)
                 .setLayoutManger(new LinearLayoutManager(getApplicationContext()))
@@ -128,42 +226,5 @@ public class FavouritesActivity extends BaseActivity {
                 .didClickOnRow(Product.class, (integer, product) -> {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
                 });
-    }
-
-    private void setStateLoading () {
-        spinner.setVisibility(View.VISIBLE);
-        errorView.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.GONE);
-    }
-
-    private void setStateSuccess (List<Product> products) {
-        spinner.setVisibility(View.GONE);
-        errorView.setVisibility(View.GONE);
-        recyclerView.setVisibility(View.VISIBLE);
-
-        adapter.update(products);
-    }
-
-    private void setStateError (Throwable throwable) {
-        recyclerView.setVisibility(View.GONE);
-        spinner.setVisibility(View.GONE);
-        errorView.setVisibility(View.VISIBLE);
-
-        TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
-        errorTxt.setText(getString(R.string.activity_favourites_error));
-
-        Button retry = (Button) errorView.findViewById(R.id.RetryButton);
-        retry.setOnClickListener(v -> getUserFavouriteProducts(facebookUser));
-    }
-
-    private void setStateEmpty () {
-        recyclerView.setVisibility(View.GONE);
-        spinner.setVisibility(View.GONE);
-        errorView.setVisibility(View.VISIBLE);
-
-        Button retry = (Button) errorView.findViewById(R.id.RetryButton);
-        retry.setVisibility(View.GONE);
-        TextView errorTxt = (TextView) errorView.findViewById(R.id.ErrorText);
-        errorTxt.setText(getString(R.string.activity_favourites_no_products));
     }
 }

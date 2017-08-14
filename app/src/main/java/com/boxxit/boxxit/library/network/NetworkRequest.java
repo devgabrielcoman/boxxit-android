@@ -101,7 +101,7 @@ public abstract class NetworkRequest implements RequestOptions {
                 return ImmutableMap.of(
                         "fields", "id,email,picture.width(300),name,birthday,cover",
                         "access_token", token(),
-                        "limit", 0,
+//                        "limit", 0,
                         "after", offset != null ? offset : "",
                         "summary", true
                 );

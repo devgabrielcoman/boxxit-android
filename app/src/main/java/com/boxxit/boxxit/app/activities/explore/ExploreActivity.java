@@ -17,11 +17,14 @@ import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
 import com.boxxit.boxxit.app.events.AppendEvent;
-import com.boxxit.boxxit.app.events.ClickEvent;
+import com.boxxit.boxxit.app.events.BackClickEvent;
+import com.boxxit.boxxit.app.events.FavouritesClickEvent;
 import com.boxxit.boxxit.app.events.InitEvent;
+import com.boxxit.boxxit.app.events.RetryClickEvent;
 import com.boxxit.boxxit.app.events.UIEvent;
 import com.boxxit.boxxit.app.results.LoadProductsResult;
 import com.boxxit.boxxit.app.results.LoadProfileResult;
+import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.app.views.ErrorView;
 import com.boxxit.boxxit.datastore.DataStore;
@@ -53,6 +56,7 @@ public class ExploreActivity extends BaseActivity {
     @BindView(R.id.ProfileName) TextView profileName;
     @BindView(R.id.ProfileBirthday) TextView profileBirthday;
     @BindView(R.id.SeeLikesButton) ImageButton seeLikes;
+    @BindView(R.id.BackButton) ImageButton backButton;
 
     PublishSubject<AppendEvent> append;
     private RxAdapter adapter;
@@ -76,13 +80,15 @@ public class ExploreActivity extends BaseActivity {
         //
         // streams of either UI events or automated (initial) events
         Observable<InitEvent> init = Observable.just(new InitEvent());
-        Observable<ClickEvent> retries = RxView.clicks(errorView.retry).map(ClickEvent::new);
+        Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
+        Observable<BackClickEvent> back = RxView.clicks(backButton).map(BackClickEvent::new);
+        Observable<FavouritesClickEvent> next = RxView.clicks(seeLikes).map(FavouritesClickEvent::new);
         append = PublishSubject.create();
-        Observable<UIEvent> events = Observable.merge(init, retries, append);
+        Observable<UIEvent> events = Observable.merge(init, retries, append, next, back);
 
         //
-        // products transformer
-        Observable.Transformer<InitEvent, LoadProfileResult> profileTransformer = initEventObservable -> events
+        // profile transformer
+        Observable.Transformer<InitEvent, LoadProfileResult> profileTransformer = initEventObservable -> init
                 .flatMap(uiEvent -> UserWorker.getProfile(userId).toObservable())
                 .map(LoadProfileResult::success)
                 .onErrorReturn(LoadProfileResult::error)
@@ -98,12 +104,22 @@ public class ExploreActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread());
 
         //
+        // navigation transformers
+        Observable.Transformer<BackClickEvent, NavigateResult> backTransformer = backClickEventObservable -> back
+                .map(uiEvent -> NavigateResult.BACK)
+                .observeOn(AndroidSchedulers.mainThread());
+        Observable.Transformer<FavouritesClickEvent, NavigateResult> favTransformer = favouritesClickEventObservable -> next
+                .map(uiEvent -> NavigateResult.NEXT)
+                .observeOn(AndroidSchedulers.mainThread());
+
+        //
         // merged transformer and scan into state
-        Observable.Transformer<UIEvent, Result> transformer =
-                evt -> evt.publish(evt1 -> Observable.merge(
-                    evt1.ofType(InitEvent.class).compose(profileTransformer),
-                    evt1.ofType(UIEvent.class).compose(productsTransformer)
-                ));
+        Observable.Transformer<UIEvent, Result> transformer = eventObservable -> Observable.merge(
+                eventObservable.ofType(UIEvent.class).compose(productsTransformer),
+                eventObservable.ofType(InitEvent.class).compose(profileTransformer),
+                eventObservable.ofType(FavouritesClickEvent.class).compose(favTransformer),
+                eventObservable.ofType(BackClickEvent.class).compose(backTransformer)
+        );
 
         //
         // state updates observer
@@ -111,7 +127,7 @@ public class ExploreActivity extends BaseActivity {
 
         //
         // UI updates
-        state.subscribe(this::updateUI, throwable -> Log.e("Boxxit", "Error is " + throwable.getMessage()));
+        state.subscribe(this::stateHandler, throwable -> Log.e("Boxxit", "Error is " + throwable.getMessage()));
     }
 
     private ExploreUIState stateReducer (ExploreUIState previousState, Result result) {
@@ -131,13 +147,22 @@ public class ExploreActivity extends BaseActivity {
                 return ExploreUIState.error(((LoadProductsResult) result).throwable);
             }
         }
+        else if (result instanceof NavigateResult) {
+            if (result == NavigateResult.BACK) {
+                return ExploreUIState.gotoBack();
+            } else if (result == NavigateResult.NEXT) {
+                return ExploreUIState.gotoFav();
+            }
+            else {
+                return previousState;
+            }
+        }
         else {
             return previousState;
         }
     }
 
-    public void updateUI (ExploreUIState state) {
-
+    public void stateHandler(ExploreUIState state) {
         if (state.isLoading) {
             updateLoadingUI();
         } else if (state.profileSuccess) {
@@ -146,6 +171,10 @@ public class ExploreActivity extends BaseActivity {
             updateProductsUI(state.products);
         } else if (state.error != null) {
             updateErrorUI(state.error);
+        } else if (state.goBack) {
+            gotoBack();
+        } else if (state.goToFav) {
+            gotoFavourites(getStringExtrasDirect("profile"));
         } else {
             updateInitialUI(getStringExtrasDirect("profile"));
         }

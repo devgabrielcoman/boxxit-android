@@ -19,8 +19,7 @@
             android:padding="20dp"
             android:background="@color/transparent"
             android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:onClick="backAction"/>
+            android:layout_height="match_parent"/>
 
         <ImageView
             android:id="@+id/ProfilePicture"

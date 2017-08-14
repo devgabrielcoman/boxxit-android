@@ -19,8 +19,7 @@
             android:padding="20dp"
             android:background="@color/transparent"
             android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:onClick="backAction"/>
+            android:layout_height="match_parent"/>
 
         <ImageView
             android:id="@+id/ProfilePicture"
@@ -73,7 +72,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <include
+    <com.boxxit.boxxit.app.views.ErrorView
         layout="@layout/view_error"
         android:id="@+id/ErrorView"
         android:visibility="gone"

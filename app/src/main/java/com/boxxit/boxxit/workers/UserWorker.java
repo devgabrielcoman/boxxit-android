@@ -22,6 +22,12 @@ public class UserWorker {
         return AccessToken.getCurrentAccessToken() != null;
     }
 
+    public static Single<Boolean> checkUserLoggedIn () {
+        return AccessToken.getCurrentAccessToken() != null ?
+                Single.just(true) :
+                Single.error(new Throwable());
+    }
+
     public static Single<Profile> getProfile(String id) {
 
         Profile current = DataStore.shared().getProfile(id);
