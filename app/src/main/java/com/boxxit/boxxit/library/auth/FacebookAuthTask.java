@@ -43,7 +43,7 @@ public class FacebookAuthTask implements Task <FacebookAuthRequest, String, Sing
 
                 @Override
                 public void onCancel() {
-                    subscriber.onError(null);
+                    subscriber.onError(new Throwable("Cancelled!"));
                 }
 
                 @Override

@@ -9,88 +9,113 @@ import android.widget.ProgressBar;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
-import com.boxxit.boxxit.app.activities.load.LoadActivity;
 import com.boxxit.boxxit.app.activities.main.MainActivity;
+import com.boxxit.boxxit.app.events.ClickEvent;
+import com.boxxit.boxxit.app.events.UIEvent;
+import com.boxxit.boxxit.app.results.LoginResult;
 import com.boxxit.boxxit.app.views.CustomAlert;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.auth.FacebookAuthRequest;
 import com.boxxit.boxxit.library.auth.FacebookAuthTask;
 import com.boxxit.boxxit.workers.UserWorker;
+import com.facebook.FacebookException;
+import com.jakewharton.rxbinding.view.RxView;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
+import rx.functions.Func1;
 
 public class LoginActivity extends BaseActivity {
 
-    FacebookAuthRequest request;
-    FacebookAuthTask task;
-
-    Button loginButton;
-    ProgressBar spinner;
+    @BindView(R.id.LoginButton) Button loginButton;
+    @BindView(R.id.Spinner) ProgressBar spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        ButterKnife.bind(this);
 
-        request = new FacebookAuthRequest();
-        task = new FacebookAuthTask(this);
+        FacebookAuthRequest request = new FacebookAuthRequest();
+        FacebookAuthTask task = new FacebookAuthTask(this);
         setOnActivityResult(task::callbackResult);
 
-        setStateInitial();
+        //
+        // initial state
+        LoginUIState initialState = LoginUIState.initial();
+
+        //
+        // Create observer
+        Observable<ClickEvent> events = RxView.clicks(loginButton).map(ClickEvent::new);
+
+        //
+        // transformer
+        Observable.Transformer<ClickEvent, LoginResult> transformer = eventObservable -> events
+                .flatMap(new Func1<UIEvent, Observable<LoginResult>>() {
+                    @Override
+                    public Observable<LoginResult> call(UIEvent uiEvent) {
+                        return task.execute(request).toObservable()
+                                .flatMap(token -> UserWorker.populateUserProfile(token).toObservable())
+                                .flatMap(aVoid -> UserWorker.getProfile(DataStore.getOwnId()).toObservable())
+                                .map(r -> LoginResult.LOGGED_IN)
+                                .onErrorReturn(LoginResult::error)
+                                .startWith(LoginResult.LOADING);
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread());
+
+        //
+        // state updates observer
+        Observable<LoginUIState> state = events.compose(transformer).scan(initialState, this::stateReducer);
+
+        // UI updates
+        state.subscribe(this::stateHandler, throwable -> Log.e("Boxxit", "Error is " + throwable.getMessage()));
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Business Logic
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    public void loginAction (View view) {
-
-        task.execute(request)
-                .doOnSubscribe(this::setStateLoading)
-                .flatMap(UserWorker::populateUserProfile)
-                .flatMap(aVoid -> UserWorker.getProfile(DataStore.getOwnId()))
-                .subscribe(this::gotoNextScreen, this::handleErrors);
-
-    }
-
-    void handleErrors (Throwable throwable) {
-        if (throwable == null) {
-            setStateNotLoading();
+    private LoginUIState stateReducer (LoginUIState previousState, LoginResult result) {
+        if (result == LoginResult.LOADING) {
+            return LoginUIState.isLoading();
+        } else if (result == LoginResult.LOGGED_IN) {
+            return LoginUIState.authSuccess();
+        } else if (result == LoginResult.ERROR && result.throwable instanceof FacebookException) {
+            return LoginUIState.error(result.throwable);
+        } else if (result == LoginResult.ERROR) {
+            return LoginUIState.authCancel();
         } else {
-            setStateError(throwable);
+            return previousState;
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // Routing Logic
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    void gotoNextScreen (Object o) {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        startActivity(intent);
+    private void stateHandler (LoginUIState state) {
+        if (state.isLoading) {
+            updateLoadingUI();
+        } else if (state.authCancel) {
+            updateInitialUI();
+        } else if (state.authSuccess) {
+            gotoNextScreen();
+        } else if (state.error != null) {
+            updateErrorUI(state.error);
+        }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    // State Logic
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    private void setStateInitial () {
-        loginButton = (Button) findViewById(R.id.LoginButton);
-        spinner = (ProgressBar) findViewById(R.id.Spinner);
-    }
-
-    private void setStateLoading () {
+    private void updateLoadingUI () {
         spinner.setVisibility(View.VISIBLE);
         loginButton.setVisibility(View.GONE);
     }
 
-    private void setStateNotLoading () {
+    private void updateInitialUI () {
         spinner.setVisibility(View.GONE);
         loginButton.setVisibility(View.VISIBLE);
     }
 
-    private void setStateError (Throwable throwable) {
+    void gotoNextScreen () {
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    private void updateErrorUI (Throwable throwable) {
         spinner.setVisibility(View.GONE);
         loginButton.setVisibility(View.VISIBLE);
         CustomAlert.shared()

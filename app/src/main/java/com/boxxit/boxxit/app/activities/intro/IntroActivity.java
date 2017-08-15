@@ -47,12 +47,9 @@ public class IntroActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread());
 
         //
-        // state manager
-        //
         // state updates observer
         Observable<IntroUIState> state = events.compose(transformer).scan(initialState, this::stateReducer);
 
-//
         // UI updates
         state.subscribe(this::stateHandler, throwable -> Log.e("Boxxit", "Error is " + throwable.getMessage()));
     }

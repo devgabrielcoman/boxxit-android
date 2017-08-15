@@ -34,8 +34,7 @@
         style="@style/BigButtonWhiteStyle"
         android:layout_centerHorizontal="true"
         android:layout_width="300dp"
-        android:layout_height="40dp"
-        android:onClick="loginAction"/>
+        android:layout_height="40dp"/>
 
     <ProgressBar
         android:id="@+id/Spinner"
