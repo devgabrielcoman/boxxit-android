@@ -18,8 +18,6 @@ public class ParseFacebookDataTask implements Task <String, FacebookData, Single
 
         return Single.create(subscriber -> {
 
-            Log.d("Boxxit", "Events: " + input);
-
             try {
                 Gson gson = new Gson();
                 FacebookData data = gson.fromJson(input, FacebookData.class);

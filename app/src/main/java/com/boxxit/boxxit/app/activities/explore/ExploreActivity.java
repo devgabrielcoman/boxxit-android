@@ -131,6 +131,7 @@ public class ExploreActivity extends BaseActivity {
     }
 
     private ExploreUIState stateReducer (ExploreUIState previousState, Result result) {
+        Log.d("Boxxit", "Explore Activity | Result: " + result);
         if (result instanceof LoadProfileResult) {
             if (result == LoadProfileResult.SUCCESS) {
                 return ExploreUIState.profileSuccess(((LoadProfileResult) result).profile);
@@ -168,6 +169,7 @@ public class ExploreActivity extends BaseActivity {
         } else if (state.profileSuccess) {
             updateProfileUI(state.profile);
         } else if (state.productSuccess && state.products != null) {
+            Log.d("Boxxit", "Now I have " + state.products.size() + " products");
             updateProductsUI(state.products);
         } else if (state.error != null) {
             updateErrorUI(state.error);

@@ -112,6 +112,7 @@ public class FavouritesActivity extends BaseActivity {
     }
 
     private FavouritesUIState stateReducer (FavouritesUIState previousState, Result result) {
+        Log.d("Boxxit", "Favourites Activity | Result: " + result);
         if (result instanceof LoadProfileResult) {
             if (result == LoadProfileResult.SUCCESS) {
                 return FavouritesUIState.profileSuccess(((LoadProfileResult) result).profile);
