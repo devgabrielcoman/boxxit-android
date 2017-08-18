@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
+import com.boxxit.boxxit.app.activities.tutorial.TutorialActivity;
 import com.boxxit.boxxit.app.events.AppendEvent;
 import com.boxxit.boxxit.app.events.BackClickEvent;
 import com.boxxit.boxxit.app.events.FavouritesClickEvent;
@@ -70,8 +71,15 @@ public class ExploreActivity extends BaseActivity {
         //
         // get pre-determined values
         String userId = getStringExtrasDirect("profile");
+        boolean hasTutorial = getBooleanExtrasDirect("hasTutorial");
         int minPrice = 500;
         int maxPrice = 5000;
+
+        if (hasTutorial) {
+            Intent tutorial = new Intent(this, TutorialActivity.class);
+            tutorial.putExtra("startInExplore", true);
+            startActivity(tutorial);
+        }
 
         //
         // initial state
@@ -106,7 +114,7 @@ public class ExploreActivity extends BaseActivity {
         //
         // navigation transformers
         Observable.Transformer<BackClickEvent, NavigateResult> backTransformer = backClickEventObservable -> back
-                .map(uiEvent -> NavigateResult.BACK)
+                .map(uiEvent -> NavigateResult.back(hasTutorial ? 101 : RESULT_OK))
                 .observeOn(AndroidSchedulers.mainThread());
         Observable.Transformer<FavouritesClickEvent, NavigateResult> favTransformer = favouritesClickEventObservable -> next
                 .map(uiEvent -> NavigateResult.NEXT)
@@ -131,7 +139,6 @@ public class ExploreActivity extends BaseActivity {
     }
 
     private ExploreUIState stateReducer (ExploreUIState previousState, Result result) {
-        Log.d("Boxxit", "Explore Activity | Result: " + result);
         if (result instanceof LoadProfileResult) {
             if (result == LoadProfileResult.SUCCESS) {
                 return ExploreUIState.profileSuccess(((LoadProfileResult) result).profile);
@@ -150,7 +157,7 @@ public class ExploreActivity extends BaseActivity {
         }
         else if (result instanceof NavigateResult) {
             if (result == NavigateResult.BACK) {
-                return ExploreUIState.gotoBack();
+                return ExploreUIState.gotoBack(((NavigateResult) result).backResult);
             } else if (result == NavigateResult.NEXT) {
                 return ExploreUIState.gotoFav();
             }
@@ -174,7 +181,7 @@ public class ExploreActivity extends BaseActivity {
         } else if (state.error != null) {
             updateErrorUI(state.error);
         } else if (state.goBack) {
-            gotoBack();
+            gotoBack(state.backResult);
         } else if (state.goToFav) {
             gotoFavourites(getStringExtrasDirect("profile"));
         } else {
@@ -182,8 +189,8 @@ public class ExploreActivity extends BaseActivity {
         }
     }
 
-    private void gotoBack () {
-        finishOK();
+    private void gotoBack (int backResult) {
+        finishOK(backResult);
     }
 
     private void gotoFavourites (String facebookUser) {

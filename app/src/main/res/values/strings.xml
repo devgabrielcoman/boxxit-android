@@ -46,4 +46,23 @@
     <string name="alert_try_again">Try Again</string>
     <string name="alert_cancel">Cancel</string>
     <string name="error_button_try_again">Retry</string>
+
+    <!-- tutorial -->
+    <string name="tutorial_1_text">Hey %1$s!\nWelcome to Boxxit, the app that helps you find interesting gift ideas for your friends.</string>
+    <string name="tutorial_1_button">Tap to start</string>
+
+    <string name="tutorial_2_text">This is your profile!\nBased on your likes and interests Boxxit has already prepared a list of gift ideas for you.</string>
+    <string name="tutorial_2_button">Tap to continue</string>
+
+    <string name="tutorial_3_1_text">And these are your friends!\nYou can tap on any of them to see what gift ideas Boxxit suggests.</string>
+    <string name="tutorial_3_1_button">Tap on any friend</string>
+
+    <string name="tutorial_3_2_text">Oh! None of your friends are on Boxxit.\nInvite them to the app or explore gift ideas for you.  </string>
+    <string name="tutorial_3_2_button">Gift ideas for you</string>
+
+    <string name="tutorial_4_text">This is the heart of Boxxit.\nYou can scroll down to see more gifts ideas.\n\nWe hope you like them and find one that\'s just right!</string>
+    <string name="tutorial_4_button">Tap to continue</string>
+
+    <string name="tutorial_5_text">That\'s it, you\'re all setup to start using Boxxit.\n\nWe hope you enjoy it and find the right gifts for your friends!</string>
+    <string name="tutorial_5_button">Tap to finish</string>
 </resources>

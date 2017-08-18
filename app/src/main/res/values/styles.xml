@@ -28,4 +28,10 @@
         <item name="android:background">@drawable/small_button</item>
     </style>
 
+    <style name="SmallButtonYellowStyle">
+        <item name="android:textColor">@color/text_blue</item>
+        <item name="android:background">@drawable/small_button_yellow</item>
+    </style>
+
+
 </resources>

@@ -112,6 +112,7 @@ public class LoginActivity extends BaseActivity {
 
     void gotoNextScreen () {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("hasTutorial", true);
         startActivity(intent);
     }
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/transparent"
+    android:id="@+id/MainTutorialView"
+    tools:context="com.boxxit.boxxit.app.activities.tutorial.TutorialActivity">
+
+    <com.boxxit.boxxit.app.views.TutorialView
+        android:visibility="gone"
+        android:id="@+id/Tutorial1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.boxxit.boxxit.app.views.TutorialView
+        android:visibility="gone"
+        android:id="@+id/Tutorial2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.boxxit.boxxit.app.views.TutorialView
+        android:visibility="gone"
+        android:id="@+id/Tutorial3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.boxxit.boxxit.app.views.TutorialView
+        android:visibility="gone"
+        android:id="@+id/Tutorial4"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.boxxit.boxxit.app.views.TutorialView
+        android:visibility="gone"
+        android:id="@+id/Tutorial5"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <Button
+        android:id="@+id/DismissButton"
+        android:visibility="gone"
+        android:clickable="false"
+        android:enabled="false"
+        android:layout_width="match_parent"
+        android:background="@color/transparent"
+        android:layout_height="match_parent" />
+
+</RelativeLayout>

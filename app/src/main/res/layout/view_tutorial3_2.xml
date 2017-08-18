@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="240dp"
+    android:background="@color/translucid">
+
+    <ImageView
+        android:src="@drawable/logo"
+        android:layout_margin="20dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"/>
+
+    <TextView
+        android:id="@+id/TutorialText"
+        android:textSize="16sp"
+        android:textColor="@color/accent"
+        android:textStyle="bold"
+        android:layout_margin="40dp"
+        android:layout_centerInParent="true"
+        android:textAlignment="center"
+        android:text="@string/tutorial_3_2_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:textAllCaps="false"
+        android:text="@string/tutorial_3_2_button"
+        style="@style/SmallButtonYellowStyle"
+        android:layout_width="140dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="30dp"/>
+
+</RelativeLayout>

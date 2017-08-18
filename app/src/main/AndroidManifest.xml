@@ -53,6 +53,10 @@
         <activity
             android:name=".app.activities.favourites.FavouritesActivity"
             android:screenOrientation="portrait"/>
+        <activity
+            android:name=".app.activities.tutorial.TutorialActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"/>
     </application>
 
 </manifest>

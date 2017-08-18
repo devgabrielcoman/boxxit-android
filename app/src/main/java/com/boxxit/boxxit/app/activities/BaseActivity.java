@@ -35,6 +35,11 @@ public class BaseActivity extends Activity {
         this.onActivityResultWithParams = onActivityResult;
     }
 
+    public void finishOK (int result) {
+        setResult(result);
+        finish();
+    }
+
     public void finishOK () {
         setResult(RESULT_OK);
         finish();
@@ -57,6 +62,15 @@ public class BaseActivity extends Activity {
             }
 
         });
+    }
+
+    public boolean getBooleanExtrasDirect(String key) {
+        Bundle bundle = BaseActivity.this.getIntent().getExtras();
+        try {
+            return bundle.getBoolean(key);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public Single<Boolean> getBooleanExtras (String key) {

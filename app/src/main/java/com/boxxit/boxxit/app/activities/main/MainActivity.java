@@ -6,14 +6,17 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
+import com.boxxit.boxxit.app.activities.tutorial.TutorialActivity;
 import com.boxxit.boxxit.app.events.AppendEvent;
 import com.boxxit.boxxit.app.events.ClickEvent;
 import com.boxxit.boxxit.app.events.InitEvent;
@@ -24,6 +27,7 @@ import com.boxxit.boxxit.app.results.LoadProfileResult;
 import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.app.views.ErrorView;
+import com.boxxit.boxxit.app.views.TutorialView;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.UserWorker;
@@ -39,6 +43,7 @@ import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action3;
 import rx.subjects.PublishSubject;
 
 public class MainActivity extends BaseActivity {
@@ -59,6 +64,7 @@ public class MainActivity extends BaseActivity {
 
     private PublishSubject<AppendEvent> append;
     String[] offset = {null};
+    boolean hasTutorial;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +75,20 @@ public class MainActivity extends BaseActivity {
         //
         // other state vars
         String userId = DataStore.getOwnId();
+        hasTutorial = getBooleanExtrasDirect("hasTutorial");
+
+        if (hasTutorial) {
+            Intent tutorial = new Intent(this, TutorialActivity.class);
+            startActivity(tutorial);
+        }
+
+        setOnActivityResult((request, result, intent) -> {
+            if (result == 101) {
+                Intent tutorial2 = new Intent(MainActivity.this, TutorialActivity.class);
+                tutorial2.putExtra("hasToFinish", true);
+                startActivity(tutorial2);
+            }
+        });
 
         //
         // initial state
@@ -265,6 +285,7 @@ public class MainActivity extends BaseActivity {
     void gotoNextScreen (String profile) {
         Intent intent = new Intent(this, ExploreActivity.class);
         intent.putExtra("profile", profile);
-        startActivity(intent);
+        intent.putExtra("hasTutorial", hasTutorial);
+        startActivityForResult(intent, 100);
     }
 }
