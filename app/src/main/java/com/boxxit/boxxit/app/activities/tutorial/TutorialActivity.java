@@ -94,35 +94,31 @@ public class TutorialActivity extends BaseActivity {
 
     private TutorialUIState stateReducer (TutorialUIState previousState, TutorialResult result) {
 
-        if (result == TutorialResult.GOTO_NEXT_TUTORIAL) {
-
-            if (previousState == TutorialUIState.INITIAL) {
-                return TutorialUIState.TUTORIAL_1.withProfile(result.profile);
-            }
-            else if (previousState == TutorialUIState.TUTORIAL_1) {
-                return TutorialUIState.TUTORIAL_2;
-            }
-            else if (previousState == TutorialUIState.TUTORIAL_2) {
-                return TutorialUIState.TUTORIAL_3;
-            }
-            else if (previousState == TutorialUIState.TUTORIAL_3) {
-                return TutorialUIState.TUTORIAL_4;
-            }
-            else if (previousState == TutorialUIState.TUTORIAL_4) {
-                return TutorialUIState.TUTORIAL_5;
-            }
-            else {
+        switch (result) {
+            case DISMISS:
+                return TutorialUIState.DISMISSED;
+            case GOTO_NEXT_TUTORIAL:
+                switch (previousState) {
+                    case INITIAL:
+                        return TutorialUIState.TUTORIAL_1.withProfile(result.profile);
+                    case TUTORIAL_1:
+                        return TutorialUIState.TUTORIAL_2;
+                    case TUTORIAL_2:
+                        return TutorialUIState.TUTORIAL_3;
+                    case TUTORIAL_3:
+                        return TutorialUIState.TUTORIAL_4;
+                    case TUTORIAL_4:
+                        return TutorialUIState.TUTORIAL_5;
+                    case TUTORIAL_5:
+                    case DISMISSED:
+                    case ERROR:
+                    default:
+                        return previousState;
+                }
+            case ERROR:
+                return TutorialUIState.ERROR(result.error);
+            default:
                 return previousState;
-            }
-        }
-        else if (result == TutorialResult.DISMISS) {
-            return TutorialUIState.DISMISSED;
-        }
-        else if (result == TutorialResult.ERROR) {
-            return TutorialUIState.ERROR(result.error);
-        }
-        else {
-            return previousState;
         }
     }
 

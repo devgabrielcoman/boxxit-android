@@ -75,16 +75,19 @@ public class LoginActivity extends BaseActivity {
     }
 
     private LoginUIState stateReducer (LoginUIState previousState, LoginResult result) {
-        if (result == LoginResult.LOADING) {
-            return LoginUIState.LOADING;
-        } else if (result == LoginResult.LOGGED_IN) {
-            return LoginUIState.AUTH_SUCCESS;
-        } else if (result == LoginResult.ERROR && result.throwable instanceof FacebookException) {
-            return LoginUIState.ERROR(result.throwable);
-        } else if (result == LoginResult.ERROR) {
-            return LoginUIState.AUTH_CANCEL;
-        } else {
-            return previousState;
+        switch (result) {
+            case LOGGED_IN:
+                return LoginUIState.AUTH_SUCCESS;
+            case LOADING:
+                return LoginUIState.LOADING;
+            case ERROR:
+                return result.throwable instanceof FacebookException ?
+                        LoginUIState.ERROR(result.throwable) :
+                        LoginUIState.AUTH_CANCEL;
+            case NOT_LOGGED_IN:
+            default:
+                return previousState;
+
         }
     }
 

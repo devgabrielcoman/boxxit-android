@@ -56,12 +56,13 @@ public class LoadActivity extends BaseActivity {
     }
 
     private LoadUIState stateReducer (LoadUIState previousState, LoadProfileResult result) {
-        if (result == LoadProfileResult.SUCCESS) {
-            return LoadUIState.PROFILE_SUCCESS;
-        } else if (result == LoadProfileResult.ERROR) {
-            return LoadUIState.ERROR(result.throwable);
-        } else {
-            return previousState;
+        switch (result) {
+            case SUCCESS:
+                return LoadUIState.PROFILE_SUCCESS;
+            case ERROR:
+                return LoadUIState.ERROR(result.throwable);
+            default:
+                return previousState;
         }
     }
 

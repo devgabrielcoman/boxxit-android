@@ -114,30 +114,39 @@ public class FavouritesActivity extends BaseActivity {
     private FavouritesUIState stateReducer (FavouritesUIState previousState, Result result) {
         Log.d("Boxxit", "Favourites Activity | Result: " + result);
         if (result instanceof LoadProfileResult) {
-            if (result == LoadProfileResult.SUCCESS) {
-                return FavouritesUIState.PROFILE_SUCCESS(((LoadProfileResult) result).profile);
-            } else {
-                return FavouritesUIState.PROFILE_ERROR(((LoadProfileResult) result).throwable);
+            LoadProfileResult loadProfileResult = (LoadProfileResult) result;
+            switch (loadProfileResult) {
+                case SUCCESS:
+                    return FavouritesUIState.PROFILE_SUCCESS(loadProfileResult.profile);
+                case ERROR:
+                    return FavouritesUIState.PROFILE_ERROR(loadProfileResult.throwable);
+                default:
+                    return previousState;
             }
         }
         else if (result instanceof LoadProductsResult) {
-            if (result == LoadProductsResult.SUCCESS) {
-                if (((LoadProductsResult) result).products.size() > 0) {
-                    return FavouritesUIState.PRODUCTS_SUCCESS(((LoadProductsResult) result).products);
-                } else {
-                    return FavouritesUIState.PRODUCTS_EMPTY;
-                }
-            } else if (result == LoadProductsResult.LOADING) {
-                return FavouritesUIState.PRODUCTS_LOADING;
-            } else {
-                return FavouritesUIState.PRODUCTS_ERROR(((LoadProductsResult) result).throwable);
+            LoadProductsResult loadProductsResult = (LoadProductsResult) result;
+            switch (loadProductsResult) {
+                case LOADING:
+                    return FavouritesUIState.PRODUCTS_LOADING;
+                case SUCCESS:
+                    return loadProductsResult.products.size() > 0 ?
+                            FavouritesUIState.PRODUCTS_SUCCESS(loadProductsResult.products) :
+                            FavouritesUIState.PRODUCTS_EMPTY;
+                case ERROR:
+                    return FavouritesUIState.PROFILE_ERROR(loadProductsResult.throwable);
+                default:
+                    return previousState;
             }
         }
         else if (result instanceof NavigateResult) {
-            if (result == NavigateResult.BACK) {
-                return FavouritesUIState.GO_BACK;
-            } else {
-                return previousState;
+            NavigateResult navigateResult = (NavigateResult) result;
+            switch (navigateResult) {
+                case BACK:
+                    return FavouritesUIState.GO_BACK;
+                case NEXT:
+                default:
+                    return previousState;
             }
         }
         else {

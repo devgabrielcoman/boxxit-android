@@ -141,29 +141,38 @@ public class ExploreActivity extends BaseActivity {
 
     private ExploreUIState stateReducer (ExploreUIState previousState, Result result) {
         if (result instanceof LoadProfileResult) {
-            if (result == LoadProfileResult.SUCCESS) {
-                return ExploreUIState.PROFILE_SUCCESS(((LoadProfileResult) result).profile);
-            } else {
-                return ExploreUIState.PROFILE_ERROR(((LoadProfileResult) result).throwable);
+            LoadProfileResult loadProfileResult = (LoadProfileResult) result;
+            switch (loadProfileResult) {
+                case SUCCESS:
+                    return ExploreUIState.PROFILE_SUCCESS(loadProfileResult.profile);
+                case ERROR:
+                    return ExploreUIState.PROFILE_ERROR(loadProfileResult.throwable);
+                default:
+                    return previousState;
             }
         }
         else if (result instanceof LoadProductsResult) {
-            if (result == LoadProductsResult.SUCCESS) {
-                return ExploreUIState.PRODUCTS_SUCCESS(((LoadProductsResult) result).products);
-            } else if (result == LoadProductsResult.LOADING) {
-                return ExploreUIState.PRODUCTS_LOADING;
-            } else {
-                return ExploreUIState.PRODUCTS_ERROR(((LoadProductsResult) result).throwable);
+            LoadProductsResult loadProductsResult = (LoadProductsResult) result;
+            switch (loadProductsResult) {
+                case LOADING:
+                    return ExploreUIState.PRODUCTS_LOADING;
+                case SUCCESS:
+                    return ExploreUIState.PRODUCTS_SUCCESS(loadProductsResult.products);
+                case ERROR:
+                    return ExploreUIState.PRODUCTS_ERROR(loadProductsResult.throwable);
+                default:
+                    return previousState;
             }
         }
         else if (result instanceof NavigateResult) {
-            if (result == NavigateResult.BACK) {
-                return ExploreUIState.GO_BACK(((NavigateResult) result).backResult);
-            } else if (result == NavigateResult.NEXT) {
-                return ExploreUIState.GOTO_FAVOURITES;
-            }
-            else {
-                return previousState;
+            NavigateResult navigateResult = (NavigateResult) result;
+            switch (navigateResult) {
+                case BACK:
+                    return ExploreUIState.GO_BACK(navigateResult.backResult);
+                case NEXT:
+                    return ExploreUIState.GOTO_FAVOURITES;
+                default:
+                    return previousState;
             }
         }
         else {
@@ -237,6 +246,7 @@ public class ExploreActivity extends BaseActivity {
         errorView.setVisibility(View.VISIBLE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
+        errorView.errorText.setText(getString(R.string.activity_explore_error));
     }
 
     private void updateInitialUI (String facebookUser) {

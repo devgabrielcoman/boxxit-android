@@ -152,33 +152,28 @@ public class MainActivity extends BaseActivity {
 
     private MainUIState stateReducer (MainUIState previousState, Result result) {
         if (result instanceof LoadProfileResult) {
-            if (result == LoadProfileResult.SUCCESS) {
-                return MainUIState.PROFILE_SUCCESS(((LoadProfileResult) result).profile);
-            } else if (result == LoadProfileResult.ERROR) {
-                return MainUIState.PROFILE_ERROR(((LoadProfileResult) result).throwable);
-            } else {
-                return previousState;
+            LoadProfileResult loadProfileResult = (LoadProfileResult) result;
+            switch (loadProfileResult) {
+                case SUCCESS:
+                    return MainUIState.PROFILE_SUCCESS(loadProfileResult.profile);
+                case ERROR:
+                    return MainUIState.PROFILE_ERROR(loadProfileResult.throwable);
+                default:
+                    return previousState;
             }
         } else if (result instanceof LoadEventsResult) {
-            if (result == LoadEventsResult.SUCCESS) {
-                if (((LoadEventsResult) result).events.size() > 0) {
-                    //
-                    // accumulate state
-                    List<Profile> events = new ArrayList<>();
-                    events.addAll(previousState.events != null ? previousState.events : new ArrayList<>());
-                    events.addAll(((LoadEventsResult) result).events);
-                    //
-                    // return new success state
-                    return MainUIState.EVENTS_SUCCESS(events);
-                } else {
-                    return MainUIState.EVENTS_EMPTY;
-                }
-            } else if (result == LoadEventsResult.ERROR) {
-                return MainUIState.EVENTS_ERROR(((LoadEventsResult) result).error);
-            } else if (result == LoadEventsResult.LOADING) {
-                return MainUIState.EVENTS_LOADING;
-            } else {
-                return previousState;
+            LoadEventsResult loadEventsResult = (LoadEventsResult) result;
+            switch (loadEventsResult) {
+                case LOADING:
+                    return MainUIState.EVENTS_LOADING;
+                case SUCCESS:
+                    return loadEventsResult.events.size() > 0 ?
+                            MainUIState.EVENTS_SUCCESS(loadEventsResult.events) :
+                            MainUIState.EVENTS_EMPTY;
+                case ERROR:
+                    return MainUIState.EVENTS_ERROR(loadEventsResult.error);
+                default:
+                    return previousState;
             }
         } else if (result instanceof NavigateResult) {
             return MainUIState.GOTO_EXPLORE;
@@ -239,7 +234,7 @@ public class MainActivity extends BaseActivity {
         inviteView.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
-        adapter.update(events);
+        adapter.add(events);
     }
 
     private void populateErrorUI (Throwable throwable) {

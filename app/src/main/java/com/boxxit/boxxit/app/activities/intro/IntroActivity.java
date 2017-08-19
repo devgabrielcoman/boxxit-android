@@ -52,10 +52,14 @@ public class IntroActivity extends BaseActivity {
     }
 
     private IntroUIState stateReducer (IntroUIState previousState, LoginResult result) {
-        if (result == LoginResult.LOGGED_IN) {
-            return IntroUIState.LOGGED_IN;
-        } else {
-            return IntroUIState.NOT_LOGGED_IN;
+        switch (result) {
+            case LOGGED_IN:
+                return IntroUIState.LOGGED_IN;
+            case NOT_LOGGED_IN:
+            case LOADING:
+            case ERROR:
+            default:
+                return IntroUIState.NOT_LOGGED_IN;
         }
     }
 
