@@ -13,7 +13,9 @@ public enum MainUIState {
     EVENTS_SUCCESS,
     EVENTS_EMPTY,
     EVENTS_ERROR,
-    GOTO_EXPLORE;
+    GOTO_EXPLORE,
+    PRESENT_TUTORIAL1,
+    PRESENT_TUTORIAL3;
 
     Profile profile;
     List<Profile> events = new ArrayList<>();

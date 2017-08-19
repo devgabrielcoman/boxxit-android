@@ -16,9 +16,11 @@ import android.widget.TextView;
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.favourites.FavouritesActivity;
+import com.boxxit.boxxit.app.activities.main.MainActivity;
 import com.boxxit.boxxit.app.activities.tutorial.TutorialActivity;
 import com.boxxit.boxxit.app.events.AppendEvent;
 import com.boxxit.boxxit.app.events.BackClickEvent;
+import com.boxxit.boxxit.app.events.BoolEvent;
 import com.boxxit.boxxit.app.events.FavouritesClickEvent;
 import com.boxxit.boxxit.app.events.InitEvent;
 import com.boxxit.boxxit.app.events.RetryClickEvent;
@@ -27,6 +29,7 @@ import com.boxxit.boxxit.app.results.LoadProductsResult;
 import com.boxxit.boxxit.app.results.LoadProfileResult;
 import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
+import com.boxxit.boxxit.app.results.TutorialResult;
 import com.boxxit.boxxit.app.views.ErrorView;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.Product;
@@ -45,6 +48,7 @@ import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
 public class ExploreActivity extends BaseActivity {
@@ -75,13 +79,6 @@ public class ExploreActivity extends BaseActivity {
         int minPrice = 500;
         int maxPrice = 5000;
 
-        // TODO: 18/08/2017 transform this & the get string exstras part into another observable & state
-        if (hasTutorial) {
-            Intent tutorial = new Intent(this, TutorialActivity.class);
-            tutorial.putExtra("startInExplore", true);
-            startActivity(tutorial);
-        }
-
         //
         // initial state
         ExploreUIState initialState = ExploreUIState.INITIAL;
@@ -93,7 +90,13 @@ public class ExploreActivity extends BaseActivity {
         Observable<BackClickEvent> back = RxView.clicks(backButton).map(BackClickEvent::new);
         Observable<FavouritesClickEvent> next = RxView.clicks(seeLikes).map(FavouritesClickEvent::new);
         append = PublishSubject.create();
-        Observable<UIEvent> events = Observable.merge(init, retries, append, next, back);
+        Observable<BoolEvent> tutorial2 = getBooleanExtras("hasTutorial").toObservable()
+                .filter(aBoolean -> aBoolean)
+                .flatMap(aBoolean -> DataStore.shared().getSecondTutorialSeen(ExploreActivity.this))
+                .filter(aBoolean -> !aBoolean)
+                .map(BoolEvent::new);
+
+        Observable<UIEvent> events = Observable.merge(init, retries, append, next, back, tutorial2);
 
         //
         // profile transformer
@@ -122,12 +125,18 @@ public class ExploreActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread());
 
         //
+        // tutorial transfoermers
+        Observable.Transformer<BoolEvent, TutorialResult> tutorialTransformer = boolEventObservable -> tutorial2
+                .map(boolEvent -> TutorialResult.PRESENT2);
+
+        //
         // merged transformer and scan into state
         Observable.Transformer<UIEvent, Result> transformer = eventObservable -> Observable.merge(
                 eventObservable.ofType(UIEvent.class).compose(productsTransformer),
                 eventObservable.ofType(InitEvent.class).compose(profileTransformer),
                 eventObservable.ofType(FavouritesClickEvent.class).compose(favTransformer),
-                eventObservable.ofType(BackClickEvent.class).compose(backTransformer)
+                eventObservable.ofType(BackClickEvent.class).compose(backTransformer),
+                eventObservable.ofType(BoolEvent.class).compose(tutorialTransformer)
         );
 
         //
@@ -175,6 +184,9 @@ public class ExploreActivity extends BaseActivity {
                     return previousState;
             }
         }
+        else if (result instanceof TutorialResult) {
+            return ExploreUIState.PRESENT_TUTORIAL2;
+        }
         else {
             return previousState;
         }
@@ -198,6 +210,10 @@ public class ExploreActivity extends BaseActivity {
                 break;
             case PRODUCTS_ERROR:
                 updateErrorUI(state.throwable);
+                break;
+            case PRESENT_TUTORIAL2:
+                DataStore.shared().setSecondTutorialSeen(this);
+                presentTutorial2();
                 break;
             case GO_BACK:
                 gotoBack(state.backResult);
@@ -305,5 +321,11 @@ public class ExploreActivity extends BaseActivity {
                     });
                 })
                 .didReachEnd(() -> append.onNext(null));
+    }
+
+    private void presentTutorial2 () {
+        Intent tutorial2 = new Intent(this, TutorialActivity.class);
+        tutorial2.putExtra("startInExplore", true);
+        startActivity(tutorial2);
     }
 }

@@ -20,10 +20,12 @@ import com.boxxit.boxxit.app.events.ClickEvent;
 import com.boxxit.boxxit.app.events.InitEvent;
 import com.boxxit.boxxit.app.events.RetryClickEvent;
 import com.boxxit.boxxit.app.events.UIEvent;
+import com.boxxit.boxxit.app.events.BoolEvent;
 import com.boxxit.boxxit.app.results.LoadEventsResult;
 import com.boxxit.boxxit.app.results.LoadProfileResult;
 import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
+import com.boxxit.boxxit.app.results.TutorialResult;
 import com.boxxit.boxxit.app.views.ErrorView;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
@@ -32,7 +34,6 @@ import com.gabrielcoman.rxrecyclerview.RxAdapter;
 import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -40,7 +41,6 @@ import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
 public class MainActivity extends BaseActivity {
@@ -61,7 +61,6 @@ public class MainActivity extends BaseActivity {
 
     private PublishSubject<AppendEvent> append;
     String[] offset = {null};
-    boolean hasTutorial;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,20 +71,6 @@ public class MainActivity extends BaseActivity {
         //
         // other state vars
         String userId = DataStore.getOwnId();
-        hasTutorial = getBooleanExtrasDirect("hasTutorial");
-
-        if (hasTutorial) {
-            Intent tutorial = new Intent(this, TutorialActivity.class);
-            startActivity(tutorial);
-        }
-
-        setOnActivityResult((request, result, intent) -> {
-            if (result == 101) {
-                Intent tutorial2 = new Intent(MainActivity.this, TutorialActivity.class);
-                tutorial2.putExtra("hasToFinish", true);
-                startActivity(tutorial2);
-            }
-        });
 
         //
         // initial state
@@ -98,16 +83,14 @@ public class MainActivity extends BaseActivity {
         Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
         Observable<ClickEvent> invites = RxView.clicks(inviteView.retry).map(ClickEvent::new);
+        Observable<BoolEvent> tutorial1 = getBooleanExtras("hasTutorial").toObservable().map(BoolEvent::new);
+        Observable<BoolEvent> tutorial3 = getActivityResult()
+                .filter(integer -> integer == 101)
+                .flatMap(integer -> DataStore.shared().getThirdTutorialSeen(MainActivity.this))
+                .filter(aBoolean -> !aBoolean)
+                .map(BoolEvent::new);
 
-        // TODO: 18/08/2017 transform the tutorial & response activity stuff into observers as well
-        Observable<UIEvent> tutorial = getBooleanExtras("hasTutorial").toObservable().map(new Func1<Boolean, UIEvent>() {
-            @Override
-            public UIEvent call(Boolean aBoolean) {
-                return null;
-            }
-        });
-
-        Observable<UIEvent> events = Observable.merge(init, retries, invites, append.asObservable());
+        Observable<UIEvent> events = Observable.merge(init, retries, invites, append.asObservable(), tutorial1, tutorial3);
 
         //
         // profile transformer
@@ -134,11 +117,20 @@ public class MainActivity extends BaseActivity {
                 .map(clickEvent -> NavigateResult.NEXT);
 
         //
+        // tutorial transformers
+        Observable.Transformer<BoolEvent, TutorialResult> tutorial1Transformer = valueEventObservable -> tutorial1
+                .map(booleanValueEvent -> TutorialResult.PRESENT1);
+        Observable.Transformer<BoolEvent, TutorialResult> tutorial2Transformer = integerEventObservable -> tutorial3
+                .map(integerEvent -> TutorialResult.PRESENT3);
+
+        //
         // main transformer
         Observable.Transformer<UIEvent, Result> transformer = observable -> Observable.merge(
                 observable.ofType(UIEvent.class).compose(eventsTransformer),
                 observable.ofType(InitEvent.class).compose(profileTransformer),
-                observable.ofType(ClickEvent.class).compose(exploreTransformer)
+                observable.ofType(ClickEvent.class).compose(exploreTransformer),
+                observable.ofType(BoolEvent.class).compose(tutorial1Transformer),
+                observable.ofType(BoolEvent.class).compose(tutorial2Transformer)
         );
 
         //
@@ -175,6 +167,16 @@ public class MainActivity extends BaseActivity {
                 default:
                     return previousState;
             }
+        } else if (result instanceof TutorialResult) {
+            TutorialResult tutorialResult = (TutorialResult) result;
+            switch (tutorialResult) {
+                case PRESENT1:
+                    return MainUIState.PRESENT_TUTORIAL1;
+                case PRESENT3:
+                    return MainUIState.PRESENT_TUTORIAL3;
+                default:
+                    return previousState;
+            }
         } else if (result instanceof NavigateResult) {
             return MainUIState.GOTO_EXPLORE;
         } else {
@@ -206,6 +208,14 @@ public class MainActivity extends BaseActivity {
                 break;
             case GOTO_EXPLORE:
                 gotoNextScreen(DataStore.getOwnId());
+                break;
+            case PRESENT_TUTORIAL1:
+                DataStore.shared().setFirstTutorialSeen(this);
+                presentTutorial1();
+                break;
+            case PRESENT_TUTORIAL3:
+                DataStore.shared().setThirdTutorialSeen(this);
+                presentTutorial3();
                 break;
         }
     }
@@ -290,7 +300,19 @@ public class MainActivity extends BaseActivity {
     void gotoNextScreen (String profile) {
         Intent intent = new Intent(this, ExploreActivity.class);
         intent.putExtra("profile", profile);
+        boolean hasTutorial = getBooleanExtrasDirect("hasTutorial");
         intent.putExtra("hasTutorial", hasTutorial);
         startActivityForResult(intent, 100);
+    }
+
+    void presentTutorial1 () {
+        Intent tutorial = new Intent(this, TutorialActivity.class);
+        startActivity(tutorial);
+    }
+
+    void presentTutorial3 () {
+        Intent tutorial3 = new Intent(MainActivity.this, TutorialActivity.class);
+        tutorial3.putExtra("hasToFinish", true);
+        startActivity(tutorial3);
     }
 }

@@ -5,14 +5,17 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import butterknife.ButterKnife;
+import rx.Observable;
 import rx.Single;
 import rx.functions.Action0;
 import rx.functions.Action3;
+import rx.subjects.PublishSubject;
 
 public class BaseActivity extends Activity {
 
     private Action0 onActivityResult = null;
     private Action3<Integer, Integer, Intent> onActivityResultWithParams = null;
+    private PublishSubject<Integer> activityResult = PublishSubject.create();
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -25,6 +28,12 @@ public class BaseActivity extends Activity {
         if (onActivityResultWithParams != null) {
             onActivityResultWithParams.call(requestCode, resultCode, data);
         }
+
+        activityResult.onNext(resultCode);
+    }
+
+    public Observable<Integer> getActivityResult () {
+        return activityResult.asObservable();
     }
 
     public void setOnActivityResult(Action0 onActivityResult) {

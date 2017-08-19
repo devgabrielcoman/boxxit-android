@@ -53,17 +53,12 @@ public class LoginActivity extends BaseActivity {
         //
         // transformer
         Observable.Transformer<ClickEvent, LoginResult> transformer = eventObservable -> events
-                .flatMap(new Func1<UIEvent, Observable<LoginResult>>() {
-                    @Override
-                    public Observable<LoginResult> call(UIEvent uiEvent) {
-                        return task.execute(request).toObservable()
-                                .flatMap(token -> UserWorker.populateUserProfile(token).toObservable())
-                                .flatMap(aVoid -> UserWorker.getProfile(DataStore.getOwnId()).toObservable())
-                                .map(r -> LoginResult.LOGGED_IN)
-                                .onErrorReturn(LoginResult::error)
-                                .startWith(LoginResult.LOADING);
-                    }
-                })
+                .flatMap(uiEvent -> task.execute(request).toObservable()
+                        .flatMap(token -> UserWorker.populateUserProfile(token).toObservable())
+                        .flatMap(aVoid -> UserWorker.getProfile(DataStore.getOwnId()).toObservable())
+                        .map(r -> LoginResult.LOGGED_IN)
+                        .onErrorReturn(LoginResult::error)
+                        .startWith(LoginResult.LOADING))
                 .observeOn(AndroidSchedulers.mainThread());
 
         //
