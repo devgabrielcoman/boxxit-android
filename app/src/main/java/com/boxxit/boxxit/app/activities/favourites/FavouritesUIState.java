@@ -6,52 +6,41 @@ import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FavouritesUIState {
+public enum FavouritesUIState {
+    INITIAL,
+    PROFILE_SUCCESS,
+    PROFILE_ERROR,
+    PRODUCTS_LOADING,
+    PRODUCTS_SUCCESS,
+    PRODUCTS_EMPTY,
+    PRODUCTS_ERROR,
+    GO_BACK;
+
     Profile profile;
-    List<Product> products;
-    Throwable error;
-    boolean isLoading;
-    boolean profileSuccess;
-    boolean productSuccess;
-    boolean productEmpty;
-    boolean goBack;
+    List<Product> products = new ArrayList<>();
+    Throwable throwable;
 
-    public FavouritesUIState(Profile profile, List<Product> products, Throwable error, boolean isLoading, boolean profileSuccess, boolean productSuccess, boolean productEmpty, boolean goBack) {
-        this.profile = profile;
-        this.products = products;
-        this.error = error;
-        this.isLoading = isLoading;
-        this.profileSuccess = profileSuccess;
-        this.productSuccess = productSuccess;
-        this.productEmpty = productEmpty;
-        this.goBack = goBack;
+    public static FavouritesUIState PROFILE_SUCCESS (Profile profile) {
+        FavouritesUIState result = PROFILE_SUCCESS;
+        result.profile = profile;
+        return result;
     }
 
-    public static FavouritesUIState initial () {
-        return new FavouritesUIState(null, null, null, false, false, false, false, false);
+    public static FavouritesUIState PROFILE_ERROR (Throwable throwable) {
+        FavouritesUIState result = PROFILE_ERROR;
+        result.throwable = throwable;
+        return result;
     }
 
-    public static FavouritesUIState isLoading() {
-        return new FavouritesUIState(null, null, null, true, false, false, false, false);
+    public static FavouritesUIState PRODUCTS_SUCCESS (List<Product> products) {
+        FavouritesUIState result = PRODUCTS_SUCCESS;
+        result.products = products;
+        return result;
     }
 
-    public static FavouritesUIState error (Throwable throwable) {
-        return new FavouritesUIState(null, null, throwable, false, false, false, false, false);
-    }
-
-    public static FavouritesUIState profileSuccess (Profile profile) {
-        return new FavouritesUIState(profile, null, null, false, true, false, false, false);
-    }
-
-    public static FavouritesUIState productsSuccess (List<Product> products) {
-        return new FavouritesUIState(null, products, null, false, false, true, false, false);
-    }
-
-    public static FavouritesUIState productsEmpty () {
-        return new FavouritesUIState(null, new ArrayList<>(), null, false, false, false, true, false);
-    }
-
-    public static FavouritesUIState gotoBack () {
-        return new FavouritesUIState(null, null, null, false, false, false, false, true);
+    public static FavouritesUIState PRODUCTS_ERROR (Throwable throwable) {
+        FavouritesUIState result = PRODUCTS_ERROR;
+        result.throwable = throwable;
+        return result;
     }
 }

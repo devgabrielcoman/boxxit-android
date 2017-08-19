@@ -69,7 +69,7 @@ public class FavouritesActivity extends BaseActivity {
 
         //
         // initial state
-        FavouritesUIState initialState = FavouritesUIState.initial();
+        FavouritesUIState initialState = FavouritesUIState.INITIAL;
 
         //
         // profile transformer
@@ -115,27 +115,27 @@ public class FavouritesActivity extends BaseActivity {
         Log.d("Boxxit", "Favourites Activity | Result: " + result);
         if (result instanceof LoadProfileResult) {
             if (result == LoadProfileResult.SUCCESS) {
-                return FavouritesUIState.profileSuccess(((LoadProfileResult) result).profile);
+                return FavouritesUIState.PROFILE_SUCCESS(((LoadProfileResult) result).profile);
             } else {
-                return FavouritesUIState.error(((LoadProfileResult) result).throwable);
+                return FavouritesUIState.PROFILE_ERROR(((LoadProfileResult) result).throwable);
             }
         }
         else if (result instanceof LoadProductsResult) {
             if (result == LoadProductsResult.SUCCESS) {
                 if (((LoadProductsResult) result).products.size() > 0) {
-                    return FavouritesUIState.productsSuccess(((LoadProductsResult) result).products);
+                    return FavouritesUIState.PRODUCTS_SUCCESS(((LoadProductsResult) result).products);
                 } else {
-                    return FavouritesUIState.productsEmpty();
+                    return FavouritesUIState.PRODUCTS_EMPTY;
                 }
             } else if (result == LoadProductsResult.LOADING) {
-                return FavouritesUIState.isLoading();
+                return FavouritesUIState.PRODUCTS_LOADING;
             } else {
-                return FavouritesUIState.error(((LoadProductsResult) result).throwable);
+                return FavouritesUIState.PRODUCTS_ERROR(((LoadProductsResult) result).throwable);
             }
         }
         else if (result instanceof NavigateResult) {
             if (result == NavigateResult.BACK) {
-                return FavouritesUIState.gotoBack();
+                return FavouritesUIState.GO_BACK;
             } else {
                 return previousState;
             }
@@ -146,20 +146,30 @@ public class FavouritesActivity extends BaseActivity {
     }
 
     public void stateHandler(FavouritesUIState state) {
-        if (state.isLoading) {
-            updateLoadingUI();
-        } else if (state.profileSuccess) {
-            updateProfileUI(state.profile);
-        } else if (state.productSuccess && state.products != null) {
-            updateProductsUI(state.products);
-        } else if (state.productEmpty) {
-            updateEmptyUI();
-        } else if (state.error != null) {
-            updateErrorUI(state.error);
-        } else if (state.goBack) {
-            gotoBack();
-        } else {
-            updateInitialUI();
+        switch (state) {
+            case INITIAL:
+                updateInitialUI();
+                break;
+            case PROFILE_SUCCESS:
+                updateProfileUI(state.profile);
+                break;
+            case PROFILE_ERROR:
+                break;
+            case PRODUCTS_LOADING:
+                updateLoadingUI();
+                break;
+            case PRODUCTS_SUCCESS:
+                updateProductsUI(state.products);
+                break;
+            case PRODUCTS_EMPTY:
+                updateEmptyUI();
+                break;
+            case PRODUCTS_ERROR:
+                updateErrorUI(state.throwable);
+                break;
+            case GO_BACK:
+                gotoBack();
+                break;
         }
     }
 

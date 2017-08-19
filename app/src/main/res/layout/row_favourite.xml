@@ -15,6 +15,7 @@
         android:textColor="@color/text_blue"
         android:textStyle="bold"
         android:text="@string/activity_favourites_product_name_placeholder"
+        android:layout_marginEnd="16dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
     <TextView

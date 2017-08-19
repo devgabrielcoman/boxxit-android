@@ -3,10 +3,7 @@ package com.boxxit.boxxit.app.activities.tutorial;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.boxxit.boxxit.R;
@@ -26,7 +23,6 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
-import rx.functions.Func1;
 
 public class TutorialActivity extends BaseActivity {
 
@@ -52,8 +48,8 @@ public class TutorialActivity extends BaseActivity {
         //
         // initial state, depending on when this starts
         TutorialUIState initialState =
-                hasToFinish ? TutorialUIState.tutorial4() :
-                    startInExplore ? TutorialUIState.tutorial3(null) : TutorialUIState.initial();
+                hasToFinish ? TutorialUIState.TUTORIAL_4 :
+                    startInExplore ? TutorialUIState.TUTORIAL_3 : TutorialUIState.INITIAL;
 
         //
         // observers
@@ -100,30 +96,30 @@ public class TutorialActivity extends BaseActivity {
 
         if (result == TutorialResult.GOTO_NEXT_TUTORIAL) {
 
-            if (previousState.isInitial) {
-                return TutorialUIState.tutorial1(result.profile);
+            if (previousState == TutorialUIState.INITIAL) {
+                return TutorialUIState.TUTORIAL_1.withProfile(result.profile);
             }
-            else if (previousState.isTutorial1) {
-                return TutorialUIState.tutorial2(previousState.profile);
+            else if (previousState == TutorialUIState.TUTORIAL_1) {
+                return TutorialUIState.TUTORIAL_2;
             }
-            else if (previousState.isTutorial2) {
-                return TutorialUIState.tutorial3(previousState.profile);
+            else if (previousState == TutorialUIState.TUTORIAL_2) {
+                return TutorialUIState.TUTORIAL_3;
             }
-            else if (previousState.isTutorial3) {
-                return TutorialUIState.tutorial4();
+            else if (previousState == TutorialUIState.TUTORIAL_3) {
+                return TutorialUIState.TUTORIAL_4;
             }
-            else if (previousState.isTutorial4) {
-                return TutorialUIState.tutorial5();
+            else if (previousState == TutorialUIState.TUTORIAL_4) {
+                return TutorialUIState.TUTORIAL_5;
             }
             else {
                 return previousState;
             }
         }
         else if (result == TutorialResult.DISMISS) {
-            return TutorialUIState.dismiss();
+            return TutorialUIState.DISMISSED;
         }
         else if (result == TutorialResult.ERROR) {
-            return TutorialUIState.error(result.error);
+            return TutorialUIState.ERROR(result.error);
         }
         else {
             return previousState;
@@ -131,29 +127,30 @@ public class TutorialActivity extends BaseActivity {
     }
 
     private void stateHandler (TutorialUIState state) {
-        if (state.isTutorial1) {
-            populateTutorial1UI(state.profile);
-        }
-        else if (state.isTutorial2) {
-            populateTutorial2UI();
-        }
-        else if (state.isTutorial3) {
-            populateTutorial3UI();
-        }
-        else if (state.isTutorial4) {
-            populateTutorial4UI();
-        }
-        else if (state.isTutorial5) {
-            populateTutorial5UI();
-        }
-        else if (state.isDismissed) {
-            dismissTutorial();
-        }
-        else if (state.error != null) {
-            populateErrorUI();
-        }
-        else if (state.isInitial) {
-            // do nothing
+        switch (state) {
+            case INITIAL:
+                break;
+            case TUTORIAL_1:
+                populateTutorial1UI(state.profile);
+                break;
+            case TUTORIAL_2:
+                populateTutorial2UI();
+                break;
+            case TUTORIAL_3:
+                populateTutorial3UI();
+                break;
+            case TUTORIAL_4:
+                populateTutorial4UI();
+                break;
+            case TUTORIAL_5:
+                populateTutorial5UI();
+                break;
+            case DISMISSED:
+                dismissTutorial();
+                break;
+            case ERROR:
+                populateErrorUI();
+                break;
         }
     }
 

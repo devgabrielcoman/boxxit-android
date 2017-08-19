@@ -6,11 +6,9 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -27,7 +25,6 @@ import com.boxxit.boxxit.app.results.LoadProfileResult;
 import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.app.views.ErrorView;
-import com.boxxit.boxxit.app.views.TutorialView;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.UserWorker;
@@ -43,7 +40,7 @@ import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action3;
+import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
 public class MainActivity extends BaseActivity {
@@ -92,7 +89,7 @@ public class MainActivity extends BaseActivity {
 
         //
         // initial state
-        MainUIState initialState = MainUIState.initial();
+        MainUIState initialState = MainUIState.INITIAL;
 
         //
         // observables
@@ -101,6 +98,15 @@ public class MainActivity extends BaseActivity {
         Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
         Observable<ClickEvent> invites = RxView.clicks(inviteView.retry).map(ClickEvent::new);
+
+        // TODO: 18/08/2017 transform the tutorial & response activity stuff into observers as well
+        Observable<UIEvent> tutorial = getBooleanExtras("hasTutorial").toObservable().map(new Func1<Boolean, UIEvent>() {
+            @Override
+            public UIEvent call(Boolean aBoolean) {
+                return null;
+            }
+        });
+
         Observable<UIEvent> events = Observable.merge(init, retries, invites, append.asObservable());
 
         //
@@ -147,9 +153,9 @@ public class MainActivity extends BaseActivity {
     private MainUIState stateReducer (MainUIState previousState, Result result) {
         if (result instanceof LoadProfileResult) {
             if (result == LoadProfileResult.SUCCESS) {
-                return MainUIState.profileSuccess(((LoadProfileResult) result).profile);
+                return MainUIState.PROFILE_SUCCESS(((LoadProfileResult) result).profile);
             } else if (result == LoadProfileResult.ERROR) {
-                return MainUIState.error(((LoadProfileResult) result).throwable);
+                return MainUIState.PROFILE_ERROR(((LoadProfileResult) result).throwable);
             } else {
                 return previousState;
             }
@@ -159,49 +165,53 @@ public class MainActivity extends BaseActivity {
                     //
                     // accumulate state
                     List<Profile> events = new ArrayList<>();
-                    events.addAll(previousState.events != null ? previousState.events : new ArrayList<Profile>());
+                    events.addAll(previousState.events != null ? previousState.events : new ArrayList<>());
                     events.addAll(((LoadEventsResult) result).events);
                     //
                     // return new success state
-                    return  MainUIState.eventsSuccess(events);
+                    return MainUIState.EVENTS_SUCCESS(events);
                 } else {
-                    return MainUIState.eventsEmpty();
+                    return MainUIState.EVENTS_EMPTY;
                 }
             } else if (result == LoadEventsResult.ERROR) {
-                return MainUIState.error(((LoadEventsResult) result).error);
+                return MainUIState.EVENTS_ERROR(((LoadEventsResult) result).error);
             } else if (result == LoadEventsResult.LOADING) {
-                return MainUIState.isLoading();
+                return MainUIState.EVENTS_LOADING;
             } else {
                 return previousState;
             }
         } else if (result instanceof NavigateResult) {
-            return MainUIState.gotoExplore();
+            return MainUIState.GOTO_EXPLORE;
         } else {
             return previousState;
         }
     }
 
     private void stateHandler (MainUIState state) {
-        if (state.profileSuccess) {
-            populateOwnProfileUI(state.profile);
-        }
-        else if (state.isLoading) {
-            populateLoadingUI();
-        }
-        else if (state.eventsSuccess) {
-            populateSuccessUI(state.events);
-        }
-        else if (state.eventsEmpty) {
-            populateEmptyUI();
-        }
-        else if (state.error != null) {
-            populateErrorUI(state.error);
-        }
-        else if (state.gotoExplore) {
-            gotoNextScreen(DataStore.getOwnId());
-        }
-        else {
-            populateInitialUI();
+        switch (state) {
+            case INITIAL:
+                populateInitialUI();
+                break;
+            case PROFILE_SUCCESS:
+                populateOwnProfileUI(state.profile);
+                break;
+            case PROFILE_ERROR:
+                break;
+            case EVENTS_LOADING:
+                populateLoadingUI();
+                break;
+            case EVENTS_SUCCESS:
+                populateSuccessUI(state.events);
+                break;
+            case EVENTS_EMPTY:
+                populateEmptyUI();
+                break;
+            case EVENTS_ERROR:
+                populateErrorUI(state.throwable);
+                break;
+            case GOTO_EXPLORE:
+                gotoNextScreen(DataStore.getOwnId());
+                break;
         }
     }
 

@@ -75,6 +75,7 @@ public class ExploreActivity extends BaseActivity {
         int minPrice = 500;
         int maxPrice = 5000;
 
+        // TODO: 18/08/2017 transform this & the get string exstras part into another observable & state
         if (hasTutorial) {
             Intent tutorial = new Intent(this, TutorialActivity.class);
             tutorial.putExtra("startInExplore", true);
@@ -83,7 +84,7 @@ public class ExploreActivity extends BaseActivity {
 
         //
         // initial state
-        ExploreUIState initialState = ExploreUIState.initial();
+        ExploreUIState initialState = ExploreUIState.INITIAL;
 
         //
         // streams of either UI events or automated (initial) events
@@ -141,25 +142,25 @@ public class ExploreActivity extends BaseActivity {
     private ExploreUIState stateReducer (ExploreUIState previousState, Result result) {
         if (result instanceof LoadProfileResult) {
             if (result == LoadProfileResult.SUCCESS) {
-                return ExploreUIState.profileSuccess(((LoadProfileResult) result).profile);
+                return ExploreUIState.PROFILE_SUCCESS(((LoadProfileResult) result).profile);
             } else {
-                return ExploreUIState.error(((LoadProfileResult) result).throwable);
+                return ExploreUIState.PROFILE_ERROR(((LoadProfileResult) result).throwable);
             }
         }
         else if (result instanceof LoadProductsResult) {
             if (result == LoadProductsResult.SUCCESS) {
-                return ExploreUIState.productsSuccess(((LoadProductsResult) result).products);
+                return ExploreUIState.PRODUCTS_SUCCESS(((LoadProductsResult) result).products);
             } else if (result == LoadProductsResult.LOADING) {
-                return ExploreUIState.isLoading();
+                return ExploreUIState.PRODUCTS_LOADING;
             } else {
-                return ExploreUIState.error(((LoadProductsResult) result).throwable);
+                return ExploreUIState.PRODUCTS_ERROR(((LoadProductsResult) result).throwable);
             }
         }
         else if (result instanceof NavigateResult) {
             if (result == NavigateResult.BACK) {
-                return ExploreUIState.gotoBack(((NavigateResult) result).backResult);
+                return ExploreUIState.GO_BACK(((NavigateResult) result).backResult);
             } else if (result == NavigateResult.NEXT) {
-                return ExploreUIState.gotoFav();
+                return ExploreUIState.GOTO_FAVOURITES;
             }
             else {
                 return previousState;
@@ -171,21 +172,30 @@ public class ExploreActivity extends BaseActivity {
     }
 
     public void stateHandler(ExploreUIState state) {
-        if (state.isLoading) {
-            updateLoadingUI();
-        } else if (state.profileSuccess) {
-            updateProfileUI(state.profile);
-        } else if (state.productSuccess && state.products != null) {
-            Log.d("Boxxit", "Now I have " + state.products.size() + " products");
-            updateProductsUI(state.products);
-        } else if (state.error != null) {
-            updateErrorUI(state.error);
-        } else if (state.goBack) {
-            gotoBack(state.backResult);
-        } else if (state.goToFav) {
-            gotoFavourites(getStringExtrasDirect("profile"));
-        } else {
-            updateInitialUI(getStringExtrasDirect("profile"));
+        switch (state) {
+            case INITIAL:
+                updateInitialUI(getStringExtrasDirect("profile"));
+                break;
+            case PROFILE_SUCCESS:
+                updateProfileUI(state.profile);
+                break;
+            case PROFILE_ERROR:
+                break;
+            case PRODUCTS_LOADING:
+                updateLoadingUI();
+                break;
+            case PRODUCTS_SUCCESS:
+                updateProductsUI(state.products);
+                break;
+            case PRODUCTS_ERROR:
+                updateErrorUI(state.throwable);
+                break;
+            case GO_BACK:
+                gotoBack(state.backResult);
+                break;
+            case GOTO_FAVOURITES:
+                gotoFavourites(getStringExtrasDirect("profile"));
+                break;
         }
     }
 

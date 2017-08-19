@@ -6,19 +6,16 @@ import android.util.Log;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
-import com.boxxit.boxxit.app.activities.favourites.FavouritesUIState;
 import com.boxxit.boxxit.app.activities.load.LoadActivity;
 import com.boxxit.boxxit.app.activities.login.LoginActivity;
 import com.boxxit.boxxit.app.events.InitEvent;
 import com.boxxit.boxxit.app.results.LoginResult;
-import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
 
 public class IntroActivity extends BaseActivity {
 
@@ -32,7 +29,7 @@ public class IntroActivity extends BaseActivity {
 
         //
         // intro state
-        IntroUIState initialState = IntroUIState.initial();
+        IntroUIState initialState = IntroUIState.INITIAL;
 
         //
         // initial observers
@@ -56,19 +53,22 @@ public class IntroActivity extends BaseActivity {
 
     private IntroUIState stateReducer (IntroUIState previousState, LoginResult result) {
         if (result == LoginResult.LOGGED_IN) {
-            return IntroUIState.loggedIn();
+            return IntroUIState.LOGGED_IN;
         } else {
-            return IntroUIState.notLoggedIn();
+            return IntroUIState.NOT_LOGGED_IN;
         }
     }
 
     public void stateHandler(IntroUIState state) {
-        if (!state.isInitial && state.isLoggedIn) {
-            gotoLoadActivity();
-        } else if (!state.isInitial && !state.isLoggedIn) {
-            gotoLoginActivity();
-        } else {
-            // do nothing
+        switch (state) {
+            case INITIAL:
+                break;
+            case LOGGED_IN:
+                gotoLoadActivity();
+                break;
+            case NOT_LOGGED_IN:
+                gotoLoginActivity();
+                break;
         }
     }
 

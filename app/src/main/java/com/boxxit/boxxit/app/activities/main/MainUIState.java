@@ -5,52 +5,42 @@ import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainUIState {
+public enum MainUIState {
+    INITIAL,
+    PROFILE_SUCCESS,
+    PROFILE_ERROR,
+    EVENTS_LOADING,
+    EVENTS_SUCCESS,
+    EVENTS_EMPTY,
+    EVENTS_ERROR,
+    GOTO_EXPLORE;
+
     Profile profile;
-    List<Profile> events;
-    Throwable error;
-    boolean isLoading;
-    boolean profileSuccess;
-    boolean eventsSuccess;
-    boolean eventsEmpty;
-    boolean gotoExplore;
+    List<Profile> events = new ArrayList<>();
+    Throwable throwable;
 
-    public MainUIState(Profile profile, List<Profile> events, Throwable error, boolean isLoading, boolean profileSuccess, boolean eventsSuccess, boolean eventsEmpty, boolean gotoExplore) {
-        this.profile = profile;
-        this.events = events;
-        this.error = error;
-        this.isLoading = isLoading;
-        this.profileSuccess = profileSuccess;
-        this.eventsSuccess = eventsSuccess;
-        this.eventsEmpty = eventsEmpty;
-        this.gotoExplore = gotoExplore;
+    public static MainUIState PROFILE_SUCCESS (Profile profile) {
+        MainUIState result = PROFILE_SUCCESS;
+        result.profile = profile;
+        return result;
     }
 
-    public static MainUIState initial () {
-        return new MainUIState(null, null, null, false, false, false, false, false);
+    public static MainUIState PROFILE_ERROR (Throwable throwable) {
+        MainUIState result = PROFILE_ERROR;
+        result.throwable = throwable;
+        return result;
     }
 
-    public static MainUIState isLoading () {
-        return new MainUIState(null, null, null, true, false, false, false, false);
+
+    public static MainUIState EVENTS_SUCCESS (List<Profile> events) {
+        MainUIState result = EVENTS_SUCCESS;
+        result.events = events;
+        return result;
     }
 
-    public static MainUIState error (Throwable error) {
-        return new MainUIState(null, null, error, false, false, false, false, false);
-    }
-
-    public static MainUIState profileSuccess (Profile profile) {
-        return new MainUIState(profile, null, null, false, true, false, false, false);
-    }
-
-    public static MainUIState eventsSuccess (List<Profile> events) {
-        return new MainUIState(null, events, null, false, false, true, false, false);
-    }
-
-    public static MainUIState eventsEmpty () {
-        return new MainUIState(null, new ArrayList<>(), null, false, false, false, true, false);
-    }
-
-    public static MainUIState gotoExplore () {
-        return new MainUIState(null, null, null, false, false, false, false, true);
+    public static MainUIState EVENTS_ERROR (Throwable throwable) {
+        MainUIState result = EVENTS_ERROR;
+        result.throwable = throwable;
+        return result;
     }
 }

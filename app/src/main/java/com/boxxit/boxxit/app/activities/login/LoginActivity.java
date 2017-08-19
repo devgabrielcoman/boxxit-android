@@ -44,7 +44,7 @@ public class LoginActivity extends BaseActivity {
 
         //
         // initial state
-        LoginUIState initialState = LoginUIState.initial();
+        LoginUIState initialState = LoginUIState.INITIAL;
 
         //
         // Create observer
@@ -76,27 +76,34 @@ public class LoginActivity extends BaseActivity {
 
     private LoginUIState stateReducer (LoginUIState previousState, LoginResult result) {
         if (result == LoginResult.LOADING) {
-            return LoginUIState.isLoading();
+            return LoginUIState.LOADING;
         } else if (result == LoginResult.LOGGED_IN) {
-            return LoginUIState.authSuccess();
+            return LoginUIState.AUTH_SUCCESS;
         } else if (result == LoginResult.ERROR && result.throwable instanceof FacebookException) {
-            return LoginUIState.error(result.throwable);
+            return LoginUIState.ERROR(result.throwable);
         } else if (result == LoginResult.ERROR) {
-            return LoginUIState.authCancel();
+            return LoginUIState.AUTH_CANCEL;
         } else {
             return previousState;
         }
     }
 
     private void stateHandler (LoginUIState state) {
-        if (state.isLoading) {
-            updateLoadingUI();
-        } else if (state.authCancel) {
-            updateInitialUI();
-        } else if (state.authSuccess) {
-            gotoNextScreen();
-        } else if (state.error != null) {
-            updateErrorUI(state.error);
+        switch (state) {
+            case INITIAL:
+                break;
+            case LOADING:
+                updateLoadingUI();
+                break;
+            case AUTH_CANCEL:
+                updateInitialUI();
+                break;
+            case AUTH_SUCCESS:
+                gotoNextScreen();
+                break;
+            case ERROR:
+                updateErrorUI(state.throwable);
+                break;
         }
     }
 

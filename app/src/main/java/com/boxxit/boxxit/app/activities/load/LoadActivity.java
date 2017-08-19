@@ -30,7 +30,7 @@ public class LoadActivity extends BaseActivity {
 
         //
         // initial state
-        LoadUIState initialState = LoadUIState.initial();
+        LoadUIState initialState = LoadUIState.INITIAL;
 
         //
         // events
@@ -57,21 +57,24 @@ public class LoadActivity extends BaseActivity {
 
     private LoadUIState stateReducer (LoadUIState previousState, LoadProfileResult result) {
         if (result == LoadProfileResult.SUCCESS) {
-            return LoadUIState.profileSuccess();
+            return LoadUIState.PROFILE_SUCCESS;
         } else if (result == LoadProfileResult.ERROR) {
-            return LoadUIState.error(result.throwable);
+            return LoadUIState.ERROR(result.throwable);
         } else {
             return previousState;
         }
     }
 
     private void stateHandler (LoadUIState state) {
-        if (state.profileSuccess) {
-            gotoMainScreen();
-        } else if (state.error != null) {
-            updateErrorUI(state.error);
-        } else {
-            // do nothing
+        switch (state) {
+            case INITIAL:
+                break;
+            case PROFILE_SUCCESS:
+                gotoMainScreen();
+                break;
+            case ERROR:
+                updateErrorUI(state.throwable);
+                break;
         }
     }
 

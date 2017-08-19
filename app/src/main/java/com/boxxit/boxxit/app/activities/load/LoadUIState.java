@@ -1,25 +1,15 @@
 package com.boxxit.boxxit.app.activities.load;
 
-public class LoadUIState {
-    boolean isInitial;
-    boolean profileSuccess;
-    Throwable error;
+public enum LoadUIState {
+    INITIAL,
+    PROFILE_SUCCESS,
+    ERROR;
 
-    public LoadUIState(boolean isInitial, boolean profileSuccess, Throwable error) {
-        this.isInitial = isInitial;
-        this.profileSuccess = profileSuccess;
-        this.error = error;
-    }
+    Throwable throwable;
 
-    public static LoadUIState initial () {
-        return new LoadUIState(true, false, null);
-    }
-
-    public static LoadUIState profileSuccess () {
-        return new LoadUIState(false, true, null);
-    }
-
-    public static LoadUIState error (Throwable throwable) {
-        return new LoadUIState(false, false, throwable);
+    public static LoadUIState ERROR(Throwable throwable) {
+        LoadUIState result = ERROR;
+        result.throwable = throwable;
+        return result;
     }
 }

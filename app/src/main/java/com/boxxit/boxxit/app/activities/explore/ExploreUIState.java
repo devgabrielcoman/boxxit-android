@@ -3,59 +3,51 @@ package com.boxxit.boxxit.app.activities.explore;
 import com.boxxit.boxxit.library.parse.models.Product;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static android.app.Activity.RESULT_OK;
+public enum ExploreUIState {
+    INITIAL,
+    PROFILE_SUCCESS,
+    PROFILE_ERROR,
+    PRODUCTS_LOADING,
+    PRODUCTS_SUCCESS,
+    PRODUCTS_ERROR,
+    GO_BACK,
+    GOTO_FAVOURITES;
 
-public class ExploreUIState {
     Profile profile;
-    List<Product> products;
-    Throwable error;
+    List<Product> products = new ArrayList<>();
+    Throwable throwable;
     int backResult;
 
-    boolean isLoading;
-    boolean profileSuccess;
-    boolean productSuccess;
-    boolean goBack;
-    boolean goToFav;
-
-    public ExploreUIState(Profile profile, List<Product> products, Throwable error, int backResult, boolean isLoading, boolean profileSuccess, boolean productSuccess, boolean goBack, boolean goToFav) {
-        this.profile = profile;
-        this.products = products;
-        this.error = error;
-        this.backResult = backResult;
-        this.isLoading = isLoading;
-        this.profileSuccess = profileSuccess;
-        this.productSuccess = productSuccess;
-        this.goBack = goBack;
-        this.goToFav = goToFav;
+    public static ExploreUIState PROFILE_SUCCESS (Profile profile) {
+        ExploreUIState result = PROFILE_SUCCESS;
+        result.profile = profile;
+        return result;
     }
 
-    public static ExploreUIState initial () {
-        return new ExploreUIState(null, null, null, RESULT_OK, false, false, false, false, false);
+    public static ExploreUIState PROFILE_ERROR (Throwable throwable) {
+        ExploreUIState result = PROFILE_ERROR;
+        result.throwable = throwable;
+        return result;
     }
 
-    public static ExploreUIState isLoading() {
-        return new ExploreUIState(null, null, null, RESULT_OK, true, false, false, false, false);
+    public static ExploreUIState PRODUCTS_SUCCESS (List<Product> products) {
+        ExploreUIState result = PRODUCTS_SUCCESS;
+        result.products = products;
+        return result;
     }
 
-    public static ExploreUIState error (Throwable throwable) {
-        return new ExploreUIState(null, null, throwable, RESULT_OK, false, false, false, false, false);
+    public static ExploreUIState PRODUCTS_ERROR (Throwable throwable) {
+        ExploreUIState result = PRODUCTS_ERROR;
+        result.throwable = throwable;
+        return result;
     }
 
-    public static ExploreUIState profileSuccess (Profile profile) {
-        return new ExploreUIState(profile, null, null, RESULT_OK, false, true, false, false, false);
-    }
-
-    public static ExploreUIState productsSuccess (List<Product> products) {
-        return new ExploreUIState(null, products, null, RESULT_OK, false, false, true, false, false);
-    }
-
-    public static ExploreUIState gotoBack (int backResult) {
-        return new ExploreUIState(null, null, null, backResult, false, false, false, true, false);
-    }
-
-    public static ExploreUIState gotoFav () {
-        return new ExploreUIState(null, null, null, RESULT_OK, false, false, false, false, true);
+    public static ExploreUIState GO_BACK (int backResult) {
+        ExploreUIState result = GO_BACK;
+        result.backResult = backResult;
+        return result;
     }
 }
