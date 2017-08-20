@@ -32,7 +32,7 @@ public class IntroActivity extends BaseActivity {
         IntroUIState initialState = IntroUIState.INITIAL;
 
         //
-        // initial observers
+        // UI & other events
         Observable<InitEvent> events = Observable.just(new InitEvent());
 
         //

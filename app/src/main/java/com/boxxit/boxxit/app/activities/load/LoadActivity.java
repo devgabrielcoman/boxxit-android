@@ -33,7 +33,7 @@ public class LoadActivity extends BaseActivity {
         LoadUIState initialState = LoadUIState.INITIAL;
 
         //
-        // events
+        // UI & other events
         retries = PublishSubject.create();
         Observable<InitEvent> inits = Observable.just(new InitEvent());
         Observable<UIEvent> events = Observable.merge(retries.asObservable(), inits);

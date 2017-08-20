@@ -47,7 +47,7 @@ public class LoginActivity extends BaseActivity {
         LoginUIState initialState = LoginUIState.INITIAL;
 
         //
-        // Create observer
+        // UI & other events
         Observable<ClickEvent> events = RxView.clicks(loginButton).map(ClickEvent::new);
 
         //

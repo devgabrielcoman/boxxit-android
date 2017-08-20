@@ -74,8 +74,6 @@ public class ExploreActivity extends BaseActivity {
 
         //
         // get pre-determined values
-        String userId = getStringExtrasDirect("profile");
-        boolean hasTutorial = getBooleanExtrasDirect("hasTutorial");
         int minPrice = 500;
         int maxPrice = 5000;
 
@@ -84,7 +82,7 @@ public class ExploreActivity extends BaseActivity {
         ExploreUIState initialState = ExploreUIState.INITIAL;
 
         //
-        // streams of either UI events or automated (initial) events
+        // UI & other events
         Observable<InitEvent> init = Observable.just(new InitEvent());
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
         Observable<BackClickEvent> back = RxView.clicks(backButton).map(BackClickEvent::new);
@@ -101,7 +99,8 @@ public class ExploreActivity extends BaseActivity {
         //
         // profile transformer
         Observable.Transformer<InitEvent, LoadProfileResult> profileTransformer = initEventObservable -> init
-                .flatMap(uiEvent -> UserWorker.getProfile(userId).toObservable())
+                .flatMap(initEvent -> getStringExtras("profile").toObservable())
+                .flatMap(userId -> UserWorker.getProfile(userId).toObservable())
                 .map(LoadProfileResult::success)
                 .onErrorReturn(LoadProfileResult::error)
                 .observeOn(AndroidSchedulers.mainThread());
@@ -109,7 +108,8 @@ public class ExploreActivity extends BaseActivity {
         //
         // product transformer
         Observable.Transformer<UIEvent, LoadProductsResult> productsTransformer = uiEventObservable -> events
-                .flatMap(uiEvent -> ProductsWorker.getProductsForUser(userId, minPrice, maxPrice).asObservable()
+                .flatMap(initEvent -> getStringExtras("profile").toObservable())
+                .flatMap(userId -> ProductsWorker.getProductsForUser(userId, minPrice, maxPrice).asObservable()
                         .map(LoadProductsResult::success)
                         .onErrorReturn(LoadProductsResult::error)
                         .startWith(LoadProductsResult.LOADING))
@@ -118,7 +118,7 @@ public class ExploreActivity extends BaseActivity {
         //
         // navigation transformers
         Observable.Transformer<BackClickEvent, NavigateResult> backTransformer = backClickEventObservable -> back
-                .map(uiEvent -> NavigateResult.back(hasTutorial ? 101 : RESULT_OK))
+                .map(uiEvent -> NavigateResult.back(101))
                 .observeOn(AndroidSchedulers.mainThread());
         Observable.Transformer<FavouritesClickEvent, NavigateResult> favTransformer = favouritesClickEventObservable -> next
                 .map(uiEvent -> NavigateResult.NEXT)

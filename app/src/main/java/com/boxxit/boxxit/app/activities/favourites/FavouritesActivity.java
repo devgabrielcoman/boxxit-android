@@ -38,6 +38,7 @@ import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 
 public class FavouritesActivity extends BaseActivity {
 
@@ -59,9 +60,7 @@ public class FavouritesActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         //
-        // get pre-determined values
-        String userId = getStringExtrasDirect("profile");
-
+        // UI & other events
         Observable<InitEvent> init = Observable.just(new InitEvent());
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
         Observable<BackClickEvent> back = RxView.clicks(backButton).map(BackClickEvent::new);
@@ -74,7 +73,8 @@ public class FavouritesActivity extends BaseActivity {
         //
         // profile transformer
         Observable.Transformer<InitEvent, LoadProfileResult> profileTransformer = initEventObservable -> init
-                .flatMap(initEvent -> UserWorker.getProfile(userId).toObservable())
+                .flatMap(initEvent -> getStringExtras("profile").toObservable())
+                .flatMap(userId -> UserWorker.getProfile(userId).toObservable())
                 .map(LoadProfileResult::success)
                 .onErrorReturn(LoadProfileResult::error)
                 .observeOn(AndroidSchedulers.mainThread());
@@ -82,7 +82,8 @@ public class FavouritesActivity extends BaseActivity {
         //
         // products transformer
         Observable.Transformer<UIEvent, LoadProductsResult> productsTransformer = eventObservable -> events
-                .flatMap(uiEvent -> ProductsWorker.getFavouriteProductsForUser(userId).asObservable()
+                .flatMap(initEvent -> getStringExtras("profile").toObservable())
+                .flatMap(userId -> ProductsWorker.getFavouriteProductsForUser(userId).asObservable()
                         .map(LoadProductsResult::success)
                         .onErrorReturn(LoadProductsResult::error)
                         .startWith(LoadProductsResult.LOADING))

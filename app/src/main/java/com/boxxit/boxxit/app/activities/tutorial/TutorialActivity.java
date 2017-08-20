@@ -23,6 +23,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
+import rx.functions.Func1;
 
 public class TutorialActivity extends BaseActivity {
 
@@ -40,8 +41,8 @@ public class TutorialActivity extends BaseActivity {
         setContentView(R.layout.activity_tutorial);
         ButterKnife.bind(this);
 
-        // get user Id
-        String userId = DataStore.getOwnId();
+        //
+        // get start vars that influence the initial state
         boolean startInExplore = getBooleanExtrasDirect("startInExplore");
         boolean hasToFinish = getBooleanExtrasDirect("hasToFinish");
 
@@ -52,7 +53,7 @@ public class TutorialActivity extends BaseActivity {
                     startInExplore ? TutorialUIState.TUTORIAL_3 : TutorialUIState.INITIAL;
 
         //
-        // observers
+        // UI & other events
         Observable<InitEvent> init = Observable.just(new InitEvent());
         Observable<ClickEvent> clicks = RxView.clicks(mainView).map(ClickEvent::new);
         Observable<ClickEvent> dismiss = RxView.clicks(dismissButton).map(ClickEvent::new);
@@ -61,7 +62,8 @@ public class TutorialActivity extends BaseActivity {
         //
         // init transformer
         Observable.Transformer<InitEvent, TutorialResult> initTutorialTransformer = initEventObservable -> init
-                .flatMap(initEvent -> UserWorker.getProfile(userId).toObservable())
+                .flatMap(initEvent -> Observable.just(DataStore.getOwnId()))
+                .flatMap(userId -> UserWorker.getProfile(userId).toObservable())
                 .map(TutorialResult::gotoNext)
                 .onErrorReturn(TutorialResult::error);
 

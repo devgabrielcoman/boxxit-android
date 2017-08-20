@@ -41,6 +41,7 @@ import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
 public class MainActivity extends BaseActivity {
@@ -69,15 +70,11 @@ public class MainActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         //
-        // other state vars
-        String userId = DataStore.getOwnId();
-
-        //
         // initial state
         MainUIState initialState = MainUIState.INITIAL;
 
         //
-        // observables
+        // UI & other events
         append = PublishSubject.create();
         Observable<InitEvent> init = Observable.just(new InitEvent());
         Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
@@ -95,7 +92,8 @@ public class MainActivity extends BaseActivity {
         //
         // profile transformer
         Observable.Transformer<InitEvent, LoadProfileResult> profileTransformer = initEventObservable -> init
-                .flatMap(initEvent -> UserWorker.getProfile(userId).toObservable())
+                .flatMap(initEvent -> Observable.just(DataStore.getOwnId()))
+                .flatMap(userId -> UserWorker.getProfile(userId).toObservable())
                 .map(LoadProfileResult::success)
                 .onErrorReturn(LoadProfileResult::error)
                 .observeOn(AndroidSchedulers.mainThread());
@@ -103,7 +101,8 @@ public class MainActivity extends BaseActivity {
         //
         // events transformer
         Observable.Transformer<UIEvent, LoadEventsResult> eventsTransformer = eventObservable -> events
-                .flatMap(uiEvent -> UserWorker.getEventsForUser(userId, offset[0]).toObservable()
+                .flatMap(initEvent -> Observable.just(DataStore.getOwnId()))
+                .flatMap(userId -> UserWorker.getEventsForUser(userId, offset[0]).toObservable()
                         .doOnNext(facebookData -> offset[0] = facebookData.paging.offsetAfter())
                         .map(facebookData -> facebookData.data)
                         .map(LoadEventsResult::success)
