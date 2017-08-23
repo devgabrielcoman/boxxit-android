@@ -9,6 +9,7 @@ import android.widget.ProgressBar;
 
 import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
+import com.boxxit.boxxit.app.activities.load.LoadActivity;
 import com.boxxit.boxxit.app.activities.main.MainActivity;
 import com.boxxit.boxxit.app.events.ClickEvent;
 import com.boxxit.boxxit.app.events.UIEvent;
@@ -55,7 +56,6 @@ public class LoginActivity extends BaseActivity {
         Observable.Transformer<ClickEvent, LoginResult> transformer = eventObservable -> events
                 .flatMap(uiEvent -> task.execute(request).toObservable()
                         .flatMap(token -> UserWorker.populateUserProfile(token).toObservable())
-                        .flatMap(aVoid -> UserWorker.getProfile(DataStore.getOwnId()).toObservable())
                         .map(r -> LoginResult.LOGGED_IN)
                         .onErrorReturn(LoginResult::error)
                         .startWith(LoginResult.LOADING))
@@ -116,7 +116,7 @@ public class LoginActivity extends BaseActivity {
     }
 
     void gotoNextScreen () {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        Intent intent = new Intent(LoginActivity.this, LoadActivity.class);
         intent.putExtra("hasTutorial", true);
         startActivity(intent);
     }

@@ -29,6 +29,22 @@
             </intent-filter>
         </activity>
 
+        <!-- Firebase -->
+
+        <service
+            android:name="com.boxxit.boxxit.app.services.NotificationService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notif" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/primary" />
+
         <!-- Boxxit -->
         <activity
             android:name=".app.activities.intro.IntroActivity"
@@ -49,7 +65,12 @@
             android:screenOrientation="portrait"/>
         <activity
             android:name=".app.activities.explore.ExploreActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait"
+            android:parentActivityName=".app.activities.main.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".app.activities.main.MainActivity"/>
+        </activity>
         <activity
             android:name=".app.activities.favourites.FavouritesActivity"
             android:screenOrientation="portrait"/>

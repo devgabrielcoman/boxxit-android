@@ -3,7 +3,8 @@ package com.boxxit.boxxit.app.activities.load;
 public enum LoadUIState {
     INITIAL,
     PROFILE_SUCCESS,
-    ERROR;
+    ERROR,
+    SEND_NOTIF_TOKEN;
 
     Throwable throwable;
 

@@ -80,7 +80,9 @@ public class MainActivity extends BaseActivity {
         Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
         Observable<ClickEvent> invites = RxView.clicks(inviteView.retry).map(ClickEvent::new);
-        Observable<BoolEvent> tutorial1 = getBooleanExtras("hasTutorial").toObservable().map(BoolEvent::new);
+        Observable<BoolEvent> tutorial1 = getBooleanExtras("hasTutorial").toObservable()
+                .filter(hasTutorial -> hasTutorial)
+                .map(BoolEvent::new);
         Observable<BoolEvent> tutorial3 = getActivityResult()
                 .filter(integer -> integer == 101)
                 .flatMap(integer -> DataStore.shared().getThirdTutorialSeen(MainActivity.this))
