@@ -16,7 +16,7 @@
     <string name="activity_main_birthday_placeholder">Birthday</string>
     <string name="activity_main_find_for_you">Find for you</string>
 
-    <string name="activity_main_invite_btn_title">Invite friend</string>
+    <string name="activity_main_invite_btn_title">Invite friends</string>
     <string name="activity_main_invite_nofriends_message">It\'s better with friends. Invite them over so Boxxit can help you find the right gifts for them.</string>
 
     <string name="activity_main_error">Error trying to get friends birthdays</string>

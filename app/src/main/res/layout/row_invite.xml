@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="177dp"
+    android:background="@color/white">
+
+    <ImageView
+        android:id="@+id/InvitePicture"
+        android:scaleType="centerCrop"
+        android:layout_margin="20dp"
+        android:layout_centerHorizontal="true"
+        android:layout_width="70dp"
+        android:layout_height="70dp"/>
+    <TextView
+        android:id="@+id/InviteBtn"
+        android:textAllCaps="false"
+        android:layout_below="@id/InvitePicture"
+        android:layout_marginTop="15dp"
+        android:layout_marginBottom="21dp"
+        android:gravity="center"
+        android:layout_centerHorizontal="true"
+        style="@style/SmallButtonStyle"
+        android:text="@string/activity_main_invite_btn_title"
+        android:layout_width="140dp"
+        android:layout_height="30dp"/>
+    <View
+        android:id="@+id/BottomSeparator"
+        android:layout_below="@+id/InviteBtn"
+        android:background="@color/separator"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
+    <View
+        android:id="@+id/RightSeparator"
+        android:layout_width="1dp"
+        android:background="@color/separator"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/BottomSeparator"
+        android:layout_toStartOf="@+id/BottomSeparator"/>
+</RelativeLayout>

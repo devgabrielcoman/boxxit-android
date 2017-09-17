@@ -28,12 +28,15 @@ import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.app.results.TutorialResult;
 import com.boxxit.boxxit.app.views.ErrorView;
 import com.boxxit.boxxit.datastore.DataStore;
+import com.boxxit.boxxit.library.invite.InviteRequest;
+import com.boxxit.boxxit.library.invite.InviteTask;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
 import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -41,6 +44,9 @@ import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
+import rx.functions.Action2;
+import rx.functions.Action4;
 import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
@@ -62,6 +68,9 @@ public class MainActivity extends BaseActivity {
 
     private PublishSubject<AppendEvent> append;
     String[] offset = {null};
+
+    // TODO: 04/09/2017 to fix this thing, this should be in the activity state somehow
+    List<Profile> tmpEvents = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -245,7 +254,14 @@ public class MainActivity extends BaseActivity {
         inviteView.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
-        adapter.add(events);
+
+        // TODO: 04/09/2017 to fix this thing, this should be in the activity state somehow
+        tmpEvents.addAll(events);
+        List<Object> result = new ArrayList<>();
+        result.addAll(tmpEvents);
+        result.add(Integer.valueOf(0));
+
+        adapter.update(result);
     }
 
     private void populateErrorUI (Throwable throwable) {
@@ -290,7 +306,32 @@ public class MainActivity extends BaseActivity {
                             .transform(new CropCircleTransformation())
                             .into(profilePicture);
                 })
+                .customizeRow(R.layout.row_invite, Integer.class, (position, view, integer2, integer3) -> {
+
+                    ImageView invitePicture = (ImageView) view.findViewById(R.id.InvitePicture);
+
+                    View rightSeparator = view.findViewById(R.id.RightSeparator);
+                    rightSeparator.setVisibility(position % 2 == 0 ? View.VISIBLE : View.GONE);
+
+                    Picasso.with(MainActivity.this)
+                            .load(R.drawable.friends)
+                            .transform(new CropCircleTransformation())
+                            .into(invitePicture);
+
+                })
                 .didClickOnRow(Profile.class, (integer, profile) -> gotoNextScreen(profile.id))
+                .didClickOnRow(Integer.class, (integer, integer2) -> {
+
+                    InviteRequest request = new InviteRequest(MainActivity.this);
+                    InviteTask task = new InviteTask();
+                    task.execute(request)
+                            .subscribe(aVoid -> {
+                                Log.d("Boxxit", "Executing invite");
+                            }, throwable -> {
+                                Log.e("Boxxit", "Error trying to invite " + throwable.getMessage());
+                            });
+
+                })
                 .didReachEnd(() -> {
                     if (offset[0] != null) {
                         append.onNext(null);
