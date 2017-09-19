@@ -232,7 +232,7 @@ public class MainActivity extends BaseActivity {
 
     private void populateOwnProfileUI (Profile profile) {
         profileName.setText(profile.name);
-        profileBirthday.setText(profile.birthday);
+        profileBirthday.setText(getBirthday(profile));
 
         Picasso.with(MainActivity.this)
                 .load(profile.picture.data.url)
@@ -297,7 +297,7 @@ public class MainActivity extends BaseActivity {
 
                     rightSeparator.setVisibility(position % 2 == 0 ? View.VISIBLE : View.GONE);
                     profileName.setText(profile.name);
-                    profileBirthday.setText(profile.birthday);
+                    profileBirthday.setText(getBirthday(profile));
 
                     Picasso.with(MainActivity.this)
                             .load(profile.picture.data.url)
@@ -356,5 +356,16 @@ public class MainActivity extends BaseActivity {
         Intent tutorial3 = new Intent(MainActivity.this, TutorialActivity.class);
         tutorial3.putExtra("hasToFinish", true);
         startActivity(tutorial3);
+    }
+
+    private String getBirthday(Profile profile) {
+        boolean isToday = profile.isBirthdayToday();
+
+        if (isToday) {
+            return getString(R.string.birthday_today);
+        } else {
+            String bday = profile.getNextBirthday();
+            return bday != null ? bday : getString(R.string.birthday_no_data);
+        }
     }
 }

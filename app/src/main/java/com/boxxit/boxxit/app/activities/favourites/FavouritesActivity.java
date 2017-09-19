@@ -23,11 +23,13 @@ import com.boxxit.boxxit.app.results.LoadProfileResult;
 import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.app.views.ErrorView;
+import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.parse.models.Product;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.ProductsWorker;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
 
@@ -53,11 +55,16 @@ public class FavouritesActivity extends BaseActivity {
 
     private RxAdapter adapter;
 
+    private FirebaseAnalytics mFirebaseAnalytics;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favourites);
         ButterKnife.bind(this);
+
+        // Obtain the FirebaseAnalytics instance.
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         //
         // UI & other events
@@ -193,7 +200,7 @@ public class FavouritesActivity extends BaseActivity {
 
     private void updateProfileUI (Profile profile) {
         profileName.setText(profile.name);
-        profileBirthday.setText(profile.birthday);
+        profileBirthday.setText(getBirthday(profile));
 
         Picasso.with(FavouritesActivity.this)
                 .load(profile.picture.data.url)
@@ -244,7 +251,41 @@ public class FavouritesActivity extends BaseActivity {
                             .into(productImage);
                 })
                 .didClickOnRow(Product.class, (integer, product) -> {
+
+                    //
+                    // open Url
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
+
+                    //
+                    // get current user
+                    String ownId = DataStore.getOwnId();
+                    String fbUser = getStringExtrasDirect("profile");
+                    Profile profile = DataStore.shared().getProfile(fbUser);
+
+                    Bundle params = new Bundle();
+
+                    //
+                    // prep data
+                    params.putString("user_id", ownId);
+                    params.putString("friend_id", profile.id);
+                    params.putString("friend_name", profile.name);
+                    params.putString("product_id", product.asin);
+                    params.putString("product_name", product.title);
+
+                    //
+                    // send analytics
+                    mFirebaseAnalytics.logEvent("view_product", params);
                 });
+    }
+
+    private String getBirthday(Profile profile) {
+        boolean isToday = profile.isBirthdayToday();
+
+        if (isToday) {
+            return getString(R.string.birthday_today);
+        } else {
+            String bday = profile.getNextBirthday();
+            return bday != null ? bday : getString(R.string.birthday_no_data);
+        }
     }
 }

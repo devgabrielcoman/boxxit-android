@@ -65,4 +65,9 @@
 
     <string name="tutorial_5_text">That\'s it, you\'re all setup to start using Boxxit.\n\nWe hope you enjoy it and find the right gifts for your friends!</string>
     <string name="tutorial_5_button">Tap to finish</string>
+
+    <!-- birthday stuff -->
+    <string name="birthday_today">Birthday today</string>
+    <string name="birthday_no_data">Birthday not available</string>
+
 </resources>

@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.boxxit.boxxit.app.events.BoolEvent;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
+import com.facebook.AccessToken;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +42,17 @@ public class DataStore {
     }
 
     public static String getOwnId () {
-        return com.facebook.Profile.getCurrentProfile().getId();
+
+        com.facebook.Profile profile = com.facebook.Profile.getCurrentProfile();
+        com.facebook.AccessToken token = AccessToken.getCurrentAccessToken();
+
+        if (profile != null) {
+            return profile.getId();
+        } else if (token != null) {
+            return token.getUserId();
+        } else {
+            return null;
+        }
     }
 
     public void setFirstTutorialSeen (Context context) {
