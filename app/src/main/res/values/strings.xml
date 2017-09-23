@@ -36,6 +36,7 @@
     <string name="activity_favourites_product_price_placeholder">£23.5</string>
     <string name="activity_favourites_no_products">No currenlty saved products.</string>
     <string name="activity_favourites_error">Error trying to get favourite products</string>
+    <string name="activity_favourites_remove_button">Remove</string>
 
     <!-- alerts & errors -->
     <string name="alert_network_error_title">Oops!</string>

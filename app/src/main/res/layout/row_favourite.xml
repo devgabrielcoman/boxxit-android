@@ -27,7 +27,22 @@
         android:text="@string/activity_favourites_product_price_placeholder"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/RemoveButton"
+        android:background="@color/transparent"
+        android:text="@string/activity_favourites_remove_button"
+        android:textAllCaps="false"
+        android:textColor="@color/text_red"
+        android:textSize="12sp"
+        android:layout_width="wrap_content"
+        android:layout_above="@+id/Separator"
+        android:layout_alignEnd="@+id/Separator"
+        android:layout_margin="8dp"
+        android:layout_height="30dp" />
+
     <View
+        android:id="@+id/Separator"
         android:layout_marginStart="16dp"
         android:layout_below="@id/ProductImage"
         android:background="@color/separator"

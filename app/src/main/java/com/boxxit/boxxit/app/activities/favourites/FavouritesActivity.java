@@ -7,6 +7,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -16,6 +17,7 @@ import com.boxxit.boxxit.R;
 import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.events.BackClickEvent;
 import com.boxxit.boxxit.app.events.InitEvent;
+import com.boxxit.boxxit.app.events.RemoveEvent;
 import com.boxxit.boxxit.app.events.RetryClickEvent;
 import com.boxxit.boxxit.app.events.UIEvent;
 import com.boxxit.boxxit.app.results.LoadProductsResult;
@@ -33,14 +35,19 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import com.jakewharton.rxbinding.view.RxView;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action0;
+import rx.functions.Action1;
 import rx.functions.Func1;
+import rx.subjects.PublishSubject;
 
 public class FavouritesActivity extends BaseActivity {
 
@@ -56,6 +63,7 @@ public class FavouritesActivity extends BaseActivity {
     private RxAdapter adapter;
 
     private FirebaseAnalytics mFirebaseAnalytics;
+    List<Product> tmpList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -175,7 +183,8 @@ public class FavouritesActivity extends BaseActivity {
                 updateLoadingUI();
                 break;
             case PRODUCTS_SUCCESS:
-                updateProductsUI(state.products);
+                this.tmpList = state.products;
+                updateProductsUI(this.tmpList);
                 break;
             case PRODUCTS_EMPTY:
                 updateEmptyUI();
@@ -214,7 +223,7 @@ public class FavouritesActivity extends BaseActivity {
         spinner.setVisibility(View.GONE);
         errorView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
-        adapter.add(products);
+        adapter.update(products);
     }
 
     private void updateErrorUI (Throwable throwable) {
@@ -242,6 +251,19 @@ public class FavouritesActivity extends BaseActivity {
                     TextView productName = (TextView) view.findViewById(R.id.ProductName);
                     TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
                     ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
+                    Button removeButton = (Button) view.findViewById(R.id.RemoveButton);
+
+                    //
+                    // UGH!!!!
+                    String own = DataStore.getOwnId();
+                    String comp = getStringExtrasDirect("profile");
+                    boolean isVisible = false;
+                    try {
+                        isVisible = own != null && own.equals(comp);
+                    } catch (NullPointerException e) {
+                        isVisible = false;
+                    }
+                    removeButton.setVisibility(isVisible ? View.VISIBLE : View.GONE);
 
                     productName.setText(product.title);
                     productPrice.setText(product.price);
@@ -249,6 +271,8 @@ public class FavouritesActivity extends BaseActivity {
                     Picasso.with(FavouritesActivity.this)
                             .load(product.largeIcon)
                             .into(productImage);
+
+                    removeButton.setOnClickListener(v -> FavouritesActivity.this.removeProduct(product));
                 })
                 .didClickOnRow(Product.class, (integer, product) -> {
 
@@ -287,5 +311,15 @@ public class FavouritesActivity extends BaseActivity {
             String bday = profile.getNextBirthday();
             return bday != null ? bday : getString(R.string.birthday_no_data);
         }
+    }
+
+    private void removeProduct (Product product) {
+        String userId = getStringExtrasDirect("profile");
+        ProductsWorker.deleteFavouriteProduct(product.asin, userId)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(aVoid -> {
+                    FavouritesActivity.this.tmpList.remove(product);
+                    FavouritesActivity.this.adapter.update(FavouritesActivity.this.tmpList);
+                }, throwable -> Log.d("Boxxit", "Could not delete product " + product.asin + " from user " + userId + " because: " + throwable.getMessage()));
     }
 }

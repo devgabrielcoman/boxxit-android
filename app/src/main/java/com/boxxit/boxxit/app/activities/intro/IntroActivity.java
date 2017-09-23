@@ -17,6 +17,9 @@ import com.facebook.appevents.AppEventsLogger;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
+
 public class IntroActivity extends BaseActivity {
 
     @Override
@@ -24,6 +27,7 @@ public class IntroActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_intro);
 
+        Fabric.with(this, new Crashlytics());
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
 

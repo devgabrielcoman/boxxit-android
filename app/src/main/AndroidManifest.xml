@@ -48,6 +48,12 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/primary" />
 
+        <!-- Fabric -->
+
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="81d050ccd36aeca829219e118905b3f96a05ee7a" />
+
         <!-- Boxxit -->
         <activity
             android:name=".app.activities.intro.IntroActivity"
