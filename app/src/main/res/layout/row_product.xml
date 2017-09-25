@@ -26,7 +26,7 @@
     <TextView
         android:id="@+id/ProductReason"
         android:textAlignment="center"
-        android:text="@string/activity_explore_product_reason_you"
+        android:text="@string/activity_explore_product_reason_sure_you"
         android:layout_below="@+id/ProductName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

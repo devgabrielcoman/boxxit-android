@@ -268,6 +268,7 @@ public class ExploreActivity extends BaseActivity {
         errorView.setVisibility(View.VISIBLE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
+        Log.e("Boxxit", "Error: " + throwable.getMessage());
         errorView.errorText.setText(getString(R.string.activity_explore_error));
     }
 
@@ -287,14 +288,15 @@ public class ExploreActivity extends BaseActivity {
                     productName.setText(product.title);
                     productPrice.setText(product.price);
                     productReason.setText(getString(facebookUser.equals(DataStore.getOwnId()) ?
-                                    R.string.activity_explore_product_reason_you :
-                                    R.string.activity_explore_product_reason_friend,
-                            product.categId));
+                            (product.isOwn ? R.string.activity_explore_product_reason_sure_you : R.string.activity_explore_product_reason_maybe_you) :
+                            (product.isOwn ? R.string.activity_explore_product_reason_sure_friend : R.string.activity_explore_product_reason_maybe_friend),
+                            capitalize(product.categId)));
                     likeProduct.setVisibility(facebookUser.equals(DataStore.getOwnId()) ? View.VISIBLE : View.GONE);
                     likeProduct.setImageDrawable(getResources().getDrawable(product.isFavourite ? R.drawable.like : R.drawable.nolike));
 
                     Picasso.with(ExploreActivity.this)
                             .load(product.largeIcon)
+                            .placeholder(R.drawable.no_ama_pic)
                             .into(productImage);
 
                     //
@@ -366,5 +368,15 @@ public class ExploreActivity extends BaseActivity {
             String bday = profile.getNextBirthday();
             return bday != null ? bday : getString(R.string.birthday_no_data);
         }
+    }
+
+    private String capitalize (String str) {
+        String[] strArray = str.split(" ");
+        StringBuilder builder = new StringBuilder();
+        for (String s : strArray) {
+            String cap = s.substring(0, 1).toUpperCase() + s.substring(1);
+            builder.append(cap).append(" ");
+        }
+        return builder.toString();
     }
 }

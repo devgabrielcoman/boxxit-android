@@ -10,4 +10,5 @@ public class Product {
     public String largeIcon;
     public boolean isFavourite;
     public String categId;
+    public boolean isOwn;
 }

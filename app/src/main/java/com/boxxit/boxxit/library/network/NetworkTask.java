@@ -21,7 +21,7 @@ public class NetworkTask implements Task <NetworkRequest, String, Single<String>
         String endpoint = input.getUrl();
         okhttp3.Request request = new okhttp3.Request.Builder().url(endpoint).build();
 
-        Log.d("Boxxit", "Endpoint: " + endpoint);
+        Log.d("Boxxit", "Calling: " + endpoint);
 
         return Single.create(subscriber -> {
 

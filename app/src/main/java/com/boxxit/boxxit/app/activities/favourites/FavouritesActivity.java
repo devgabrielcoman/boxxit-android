@@ -270,6 +270,7 @@ public class FavouritesActivity extends BaseActivity {
 
                     Picasso.with(FavouritesActivity.this)
                             .load(product.largeIcon)
+                            .placeholder(R.drawable.no_ama_pic)
                             .into(productImage);
 
                     removeButton.setOnClickListener(v -> FavouritesActivity.this.removeProduct(product));

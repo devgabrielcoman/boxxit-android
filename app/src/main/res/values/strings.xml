@@ -27,8 +27,10 @@
     <string name="activity_explore_get_amazon">Get on Amazon</string>
     <string name="activity_explore_product_price_placeholder">£23.5</string>
     <string name="activity_explore_product_name_placeholder">This is\nproduct</string>
-    <string name="activity_explore_product_reason_you">Recommended because you like %1$s</string>
-    <string name="activity_explore_product_reason_friend">Recommended because your friend likes %1$s</string>
+    <string name="activity_explore_product_reason_sure_you">Recommended because you like %1$s</string>
+    <string name="activity_explore_product_reason_sure_friend">Recommended because your friend likes %1$s</string>
+    <string name="activity_explore_product_reason_maybe_you">Recommended because you might like %1$s</string>
+    <string name="activity_explore_product_reason_maybe_friend">Recommended because your friend might like %1$s</string>
     <string name="activity_explore_error">Error trying to get gifts!</string>
 
     <!-- favourites -->
