@@ -271,6 +271,7 @@ public class ExploreActivity extends BaseActivity {
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
         Log.e("Boxxit", "Error: " + throwable.getMessage());
+        
         errorView.errorText.setText(getString(R.string.activity_explore_error));
     }
 
