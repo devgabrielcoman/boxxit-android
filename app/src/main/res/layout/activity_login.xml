@@ -12,15 +12,16 @@
         android:layout_height="match_parent"/>
 
     <ImageView
-        android:layout_marginTop="160dp"
+        android:layout_marginTop="120dp"
         android:id="@+id/Logo"
         android:layout_centerHorizontal="true"
         android:src="@drawable/logo"
         android:layout_width="300dp"
-        android:layout_height="120dp"/>
+        android:layout_height="160dp"/>
     <ImageView
+        android:id="@+id/Title"
         android:layout_below="@+id/Logo"
-        android:layout_marginTop="-40dp"
+        android:layout_marginTop="-80dp"
         android:layout_centerHorizontal="true"
         android:src="@drawable/title"
         android:layout_width="100dp"
@@ -29,12 +30,14 @@
     <Button
         android:id="@+id/LoginButton"
         android:text="@string/activity_login_btn_text"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="30dp"
+        android:layout_below="@+id/Title"
+        android:elevation="2dp"
+        android:layout_marginTop="30dp"
         style="@style/BigButtonWhiteStyle"
+        android:textAllCaps="false"
         android:layout_centerHorizontal="true"
-        android:layout_width="300dp"
-        android:layout_height="40dp"/>
+        android:layout_width="200dp"
+        android:layout_height="36dp"/>
 
     <ProgressBar
         android:id="@+id/Spinner"
