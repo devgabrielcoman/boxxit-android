@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -215,7 +216,7 @@ public class FavouritesActivity extends BaseActivity {
                 .load(profile.picture.data.url)
                 .placeholder(R.drawable.ic_user_default)
                 .error(R.drawable.ic_user_default)
-                .transform(new CropCircleTransformation())
+                .transform(new RoundedCornersTransformation(25, 0))
                 .into(profilePicture);
     }
 
@@ -251,7 +252,7 @@ public class FavouritesActivity extends BaseActivity {
                     TextView productName = (TextView) view.findViewById(R.id.ProductName);
                     TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
                     ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
-                    Button removeButton = (Button) view.findViewById(R.id.RemoveButton);
+                    ImageButton removeButton = (ImageButton) view.findViewById(R.id.RemoveButton);
 
                     //
                     // UGH!!!!

@@ -3,14 +3,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/white"
-    android:orientation="vertical"
     tools:context="com.boxxit.boxxit.app.activities.favourites.FavouritesActivity">
 
     <RelativeLayout
         android:id="@+id/SmallHeader"
         android:layout_width="match_parent"
         android:layout_height="60dp">
+
+        <ImageView
+            android:id="@+id/HeaderBg"
+            android:src="@drawable/headerbg"
+            android:scaleType="fitXY"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
         <ImageButton
             android:id="@+id/BackButton"
@@ -27,8 +32,8 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_user_default"
             android:scaleType="fitCenter"
-            android:layout_width="42dp"
-            android:layout_height="42dp"/>
+            android:layout_width="30dp"
+            android:layout_height="30dp"/>
 
         <LinearLayout
             android:id="@+id/ProfileDetails"
@@ -50,25 +55,19 @@
             <TextView
                 android:id="@+id/ProfileBirthday"
                 android:text="@string/activity_explore_birthday_placeholder"
+                android:layout_marginTop="-3dp"
                 android:textColor="@color/text_medium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
         </LinearLayout>
-
-        <View
-            android:layout_alignParentBottom="true"
-            android:layout_width="match_parent"
-            android:background="@color/separator"
-            android:layout_height="1dp"/>
-
     </RelativeLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/FavouritesRecyclerView"
         android:layout_below="@+id/SmallHeader"
         android:scrollbars="none"
-        android:background="#ffffff"
+        android:background="@color/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
