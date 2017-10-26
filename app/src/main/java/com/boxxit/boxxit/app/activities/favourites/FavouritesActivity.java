@@ -253,6 +253,7 @@ public class FavouritesActivity extends BaseActivity {
                     TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
                     ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
                     ImageButton removeButton = (ImageButton) view.findViewById(R.id.RemoveButton);
+                    Button buyAmazon = (Button) view.findViewById(R.id.BuyOnAmazonButton);
 
                     //
                     // UGH!!!!
@@ -274,33 +275,37 @@ public class FavouritesActivity extends BaseActivity {
                             .placeholder(R.drawable.no_ama_pic)
                             .into(productImage);
 
+                    //
+                    // remove action
                     removeButton.setOnClickListener(v -> FavouritesActivity.this.removeProduct(product));
-                })
-                .didClickOnRow(Product.class, (integer, product) -> {
 
                     //
-                    // open Url
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
+                    // buy action
+                    buyAmazon.setOnClickListener(v -> {
+                        //
+                        // open Url
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
 
-                    //
-                    // get current user
-                    String ownId = DataStore.getOwnId();
-                    String fbUser = getStringExtrasDirect("profile");
-                    Profile profile = DataStore.shared().getProfile(fbUser);
+                        //
+                        // get current user
+                        String ownId = DataStore.getOwnId();
+                        String fbUser = getStringExtrasDirect("profile");
+                        Profile profile = DataStore.shared().getProfile(fbUser);
 
-                    Bundle params = new Bundle();
+                        Bundle params = new Bundle();
 
-                    //
-                    // prep data
-                    params.putString("user_id", ownId);
-                    params.putString("friend_id", profile.id);
-                    params.putString("friend_name", profile.name);
-                    params.putString("product_id", product.asin);
-                    params.putString("product_name", product.title);
+                        //
+                        // prep data
+                        params.putString("user_id", ownId);
+                        params.putString("friend_id", profile.id);
+                        params.putString("friend_name", profile.name);
+                        params.putString("product_id", product.asin);
+                        params.putString("product_name", product.title);
 
-                    //
-                    // send analytics
-                    mFirebaseAnalytics.logEvent("view_product", params);
+                        //
+                        // send analytics
+                        mFirebaseAnalytics.logEvent("view_product", params);
+                    });
                 });
     }
 
