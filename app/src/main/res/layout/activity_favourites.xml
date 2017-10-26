@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/background"
     tools:context="com.boxxit.boxxit.app.activities.favourites.FavouritesActivity">
 
     <RelativeLayout
@@ -67,6 +68,8 @@
         android:id="@+id/FavouritesRecyclerView"
         android:layout_below="@+id/SmallHeader"
         android:scrollbars="none"
+        android:paddingTop="16dp"
+        android:clipToPadding="false"
         android:background="@color/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

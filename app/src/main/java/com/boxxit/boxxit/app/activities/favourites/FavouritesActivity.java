@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -249,11 +250,14 @@ public class FavouritesActivity extends BaseActivity {
                 .setLayoutManger(new LinearLayoutManager(getApplicationContext()))
                 .customizeRow(R.layout.row_favourite, Product.class, (position, view, product, total) -> {
 
+                    RelativeLayout productPanel = (RelativeLayout) view.findViewById(R.id.ProductPanel);
                     TextView productName = (TextView) view.findViewById(R.id.ProductName);
                     TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
                     ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
                     ImageButton removeButton = (ImageButton) view.findViewById(R.id.RemoveButton);
                     Button buyAmazon = (Button) view.findViewById(R.id.BuyOnAmazonButton);
+
+
 
                     //
                     // UGH!!!!

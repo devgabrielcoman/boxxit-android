@@ -79,6 +79,8 @@
         android:id="@+id/ProductsRecyclerView"
         android:layout_below="@+id/SmallHeader"
         android:scrollbars="none"
+        android:paddingTop="16dp"
+        android:clipToPadding="false"
         android:background="@color/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

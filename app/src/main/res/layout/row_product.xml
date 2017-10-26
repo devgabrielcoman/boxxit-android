@@ -4,6 +4,7 @@
     android:layout_height="wrap_content">
 
     <RelativeLayout
+        android:id="@+id/ProductPanel"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
@@ -36,7 +37,7 @@
             android:textColor="@color/text_dark"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"/>
+            android:layout_marginTop="6dp"/>
         <RelativeLayout
             android:id="@+id/AmazonBtnBolder"
             android:gravity="center"
