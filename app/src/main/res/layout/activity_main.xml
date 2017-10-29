@@ -117,6 +117,20 @@
         android:layout_height="60dp"
         android:background="@color/background">
 
+        <View
+            android:id="@+id/FirstSeparator"
+            android:background="@color/primary"
+            android:layout_width="100dp"
+            android:layout_height="1dp"/>
+
+        <View
+            android:id="@+id/SecondSeparator"
+            android:layout_toEndOf="@id/FirstSeparator"
+            android:background="@color/accent"
+            android:layout_marginStart="12dp"
+            android:layout_width="30dp"
+            android:layout_height="1dp"/>
+
         <TextView
             android:layout_centerVertical="true"
             android:layout_toStartOf="@+id/InviteBtn"
