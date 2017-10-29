@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shadow">
-        <ImageView
+        <com.boxxit.boxxit.app.views.RoundRectCornerImageView
             android:id="@+id/ProfilePicture"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"

@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -28,6 +29,7 @@ import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.app.results.TutorialResult;
 import com.boxxit.boxxit.app.views.ErrorView;
+import com.boxxit.boxxit.app.views.InviteView;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.invite.InviteRequest;
 import com.boxxit.boxxit.library.invite.InviteTask;
@@ -57,7 +59,8 @@ public class MainActivity extends BaseActivity {
     //
     // views
     @BindView(R.id.ErrorView) ErrorView errorView;
-    @BindView(R.id.InviteView) ErrorView inviteView;
+    @BindView(R.id.InviteView) InviteView inviteView;
+    @BindView(R.id.Footer) RelativeLayout footer;
     @BindView(R.id.EventsRecyclerView) RecyclerView recyclerView;
     @BindView(R.id.Spinner) ProgressBar spinner;
 
@@ -90,7 +93,7 @@ public class MainActivity extends BaseActivity {
         Observable<InitEvent> init = Observable.just(new InitEvent());
         Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
-        Observable<ClickEvent> invites = RxView.clicks(inviteView.retry).map(ClickEvent::new);
+//        Observable<ClickEvent> invites = RxView.clicks(inviteView.invite).map(ClickEvent::new);
         Observable<BoolEvent> tutorial1 = getBooleanExtras("hasTutorial").toObservable()
                 .filter(hasTutorial -> hasTutorial)
                 .map(BoolEvent::new);
@@ -100,7 +103,9 @@ public class MainActivity extends BaseActivity {
                 .filter(aBoolean -> !aBoolean)
                 .map(BoolEvent::new);
 
-        Observable<UIEvent> events = Observable.merge(init, retries, invites, append.asObservable(), tutorial1, tutorial3);
+        inviteView.invite.setOnClickListener(this::executeInvite);
+
+        Observable<UIEvent> events = Observable.merge(init, retries, /*invites,*/ append.asObservable(), tutorial1, tutorial3);
 
         //
         // profile transformer
@@ -168,6 +173,7 @@ public class MainActivity extends BaseActivity {
         } else if (result instanceof LoadEventsResult) {
             LoadEventsResult loadEventsResult = (LoadEventsResult) result;
             switch (loadEventsResult) {
+
                 case LOADING:
                     return MainUIState.EVENTS_LOADING;
                 case SUCCESS:
@@ -249,6 +255,7 @@ public class MainActivity extends BaseActivity {
         errorView.setVisibility(View.GONE);
         inviteView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
+        footer.setVisibility(View.VISIBLE);
     }
 
     private void populateSuccessUI (List<Profile> events) {
@@ -256,6 +263,7 @@ public class MainActivity extends BaseActivity {
         inviteView.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
+        footer.setVisibility(View.VISIBLE);
 
         // TODO: 04/09/2017 to fix this thing, this should be in the activity state somehow
         tmpEvents.addAll(events);
@@ -270,6 +278,7 @@ public class MainActivity extends BaseActivity {
         inviteView.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
+        footer.setVisibility(View.VISIBLE);
 
         errorView.errorText.setText(getString(R.string.activity_main_error));
         errorView.retry.setText(getString(R.string.error_button_try_again));
@@ -280,9 +289,7 @@ public class MainActivity extends BaseActivity {
         errorView.setVisibility(View.GONE);
         inviteView.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
-
-        inviteView.errorText.setText(getString(R.string.activity_main_invite_nofriends_message));
-        inviteView.retry.setText(getString(R.string.activity_main_invite_btn_title));
+        footer.setVisibility(View.GONE);
     }
 
     private void populateInitialUI () {

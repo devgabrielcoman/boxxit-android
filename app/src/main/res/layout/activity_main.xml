@@ -99,7 +99,7 @@
             android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
-        <com.boxxit.boxxit.app.views.ErrorView
+        <com.boxxit.boxxit.app.views.InviteView
             android:id="@+id/InviteView"
             android:visibility="gone"
             android:layout_width="match_parent"
