@@ -32,6 +32,7 @@
             android:layout_below="@+id/ProfileName"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
+            android:textSize="12sp"
             android:textStyle="bold"
             android:textColor="@color/text_dark"
             android:text="@string/activity_main_birthday_placeholder"
