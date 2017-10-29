@@ -11,6 +11,8 @@
     <color name="text_medium">#F6F7EB</color>
     <color name="text_blue">#0F2A42</color>
     <color name="text_red">#FF4848</color>
+    <color name="text_yellow">#DFD11F</color>
+    <color name="text_white">#ffffff</color>
 
     <color name="transparent">#00000000</color>
     <color name="white">#ffffff</color>

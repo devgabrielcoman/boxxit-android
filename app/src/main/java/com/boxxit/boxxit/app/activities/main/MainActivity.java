@@ -3,6 +3,7 @@ package com.boxxit.boxxit.app.activities.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
@@ -42,6 +43,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -238,7 +240,7 @@ public class MainActivity extends BaseActivity {
                 .load(profile.picture.data.url)
                 .placeholder(R.drawable.ic_user_default)
                 .error(R.drawable.ic_user_default)
-                .transform(new CropCircleTransformation())
+                .transform(new RoundedCornersTransformation(25, 0))
                 .into(profilePicture);
     }
 
@@ -259,7 +261,6 @@ public class MainActivity extends BaseActivity {
         tmpEvents.addAll(events);
         List<Object> result = new ArrayList<>();
         result.addAll(tmpEvents);
-        result.add(Integer.valueOf(0));
 
         adapter.update(result);
     }
@@ -285,53 +286,21 @@ public class MainActivity extends BaseActivity {
     }
 
     private void populateInitialUI () {
+
         adapter = RxAdapter.create()
                 .bindTo(recyclerView)
-                .setLayoutManger(new GridLayoutManager(getApplicationContext(), 2))
+                .setLayoutManger(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false))
                 .customizeRow(R.layout.row_event, Profile.class, (position, view, profile, total) -> {
 
                     ImageView profilePicture = (ImageView) view.findViewById(R.id.ProfilePicture);
                     TextView profileName = (TextView) view.findViewById(R.id.ProfileName);
                     TextView profileBirthday = (TextView) view.findViewById(R.id.ProfileBirthday);
-                    View rightSeparator = view.findViewById(R.id.RightSeparator);
 
-                    rightSeparator.setVisibility(position % 2 == 0 ? View.VISIBLE : View.GONE);
                     profileName.setText(profile.name);
                     profileBirthday.setText(getBirthday(profile));
-
-                    Picasso.with(MainActivity.this)
-                            .load(profile.picture.data.url)
-                            .placeholder(R.drawable.ic_user_default)
-                            .error(R.drawable.ic_user_default)
-                            .transform(new CropCircleTransformation())
-                            .into(profilePicture);
-                })
-                .customizeRow(R.layout.row_invite, Integer.class, (position, view, integer2, integer3) -> {
-
-                    ImageView invitePicture = (ImageView) view.findViewById(R.id.InvitePicture);
-
-                    View rightSeparator = view.findViewById(R.id.RightSeparator);
-                    rightSeparator.setVisibility(position % 2 == 0 ? View.VISIBLE : View.GONE);
-
-                    Picasso.with(MainActivity.this)
-                            .load(R.drawable.friends)
-                            .transform(new CropCircleTransformation())
-                            .into(invitePicture);
-
+                    Picasso.with(MainActivity.this).load(profile.picture.data.url).into(profilePicture);
                 })
                 .didClickOnRow(Profile.class, (integer, profile) -> gotoNextScreen(profile.id))
-                .didClickOnRow(Integer.class, (integer, integer2) -> {
-
-                    InviteRequest request = new InviteRequest(MainActivity.this);
-                    InviteTask task = new InviteTask();
-                    task.execute(request)
-                            .subscribe(aVoid -> {
-                                Log.d("Boxxit", "Executing invite");
-                            }, throwable -> {
-                                Log.e("Boxxit", "Error trying to invite " + throwable.getMessage());
-                            });
-
-                })
                 .didReachEnd(() -> {
                     if (offset[0] != null) {
                         append.onNext(null);
@@ -367,5 +336,17 @@ public class MainActivity extends BaseActivity {
             String bday = profile.getNextBirthday();
             return bday != null ? bday : getString(R.string.birthday_no_data);
         }
+    }
+
+    public void executeInvite (View view) {
+
+        InviteRequest request = new InviteRequest(MainActivity.this);
+        InviteTask task = new InviteTask();
+        task.execute(request)
+                .subscribe(aVoid -> {
+                    Log.d("Boxxit", "Executing invite");
+                }, throwable -> {
+                    Log.e("Boxxit", "Error trying to invite " + throwable.getMessage());
+                });
     }
 }
