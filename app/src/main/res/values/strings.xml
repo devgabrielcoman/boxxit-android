@@ -17,7 +17,9 @@
     <string name="activity_main_find_for_you">Find for you</string>
 
     <string name="activity_main_invite_btn_title">Invite friends</string>
-    <string name="activity_main_invite_nofriends_message">It\'s better with friends. Invite them over so Boxxit can help you find the right gifts for them.</string>
+    <string name="activity_main_invite_friends_message">It\'s better with friends.</string>
+    <string name="activity_main_invite_nofriends_message_1">Connect\nwith your friends</string>
+    <string name="activity_main_invite_nofriends_message_2">and discover\nnew ideas for gifts</string>
 
     <string name="activity_main_error">Error trying to get friends birthdays</string>
 
@@ -38,7 +40,6 @@
     <string name="activity_favourites_product_price_placeholder">£23.5</string>
     <string name="activity_favourites_no_products">No currenlty saved products.</string>
     <string name="activity_favourites_error">Error trying to get favourite products</string>
-    <string name="activity_favourites_remove_button">Remove</string>
 
     <!-- alerts & errors -->
     <string name="alert_network_error_title">Oops!</string>

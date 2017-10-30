@@ -46,6 +46,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 import rx.Observable;
 import rx.Single;
 import rx.android.schedulers.AndroidSchedulers;
@@ -254,7 +255,7 @@ public class ExploreActivity extends BaseActivity {
                 .load(profile.picture.data.url)
                 .placeholder(R.drawable.ic_user_default)
                 .error(R.drawable.ic_user_default)
-                .transform(new CropCircleTransformation())
+                .transform(new RoundedCornersTransformation(25, 0))
                 .into(profilePicture);
     }
 

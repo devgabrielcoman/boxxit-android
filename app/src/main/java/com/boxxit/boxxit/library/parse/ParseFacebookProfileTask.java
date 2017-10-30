@@ -20,6 +20,9 @@ public class ParseFacebookProfileTask implements Task<String, Profile, Single<Pr
 
             try {
                 Gson gson = new Gson();
+
+
+
                 Profile profile = gson.fromJson(input, Profile.class);
                 subscriber.onSuccess(profile);
             } catch (JsonParseException e) {

@@ -69,7 +69,7 @@ public class Profile {
                 String dt = (bmonth < 10 ? "0" + bmonth : bmonth) + "/" + (bday < 10 ? "0" + bday : bday) + "/" + ryear;
                 Date date = format1.parse(dt);
 
-                String inputFormat2 = "EEEE, MMM d, yyyy";
+                String inputFormat2 = "EEE, MMM d, yyyy";
                 SimpleDateFormat format2 = new SimpleDateFormat(inputFormat2, java.util.Locale.getDefault());
                 return format2.format(date);
 
@@ -85,7 +85,7 @@ public class Profile {
         String bday = getNextBirthday();
 
         if (bday != null) {
-            String inputFormat = "EEEE, MMM d, yyyy";
+            String inputFormat = "EEE, MMM d, yyyy";
             Date now = new Date();
             SimpleDateFormat format = new SimpleDateFormat(inputFormat, java.util.Locale.getDefault());
             String nday = format.format(now);

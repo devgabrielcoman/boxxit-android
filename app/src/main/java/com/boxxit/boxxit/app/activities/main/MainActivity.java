@@ -3,12 +3,14 @@ package com.boxxit.boxxit.app.activities.main;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -27,6 +29,7 @@ import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
 import com.boxxit.boxxit.app.results.TutorialResult;
 import com.boxxit.boxxit.app.views.ErrorView;
+import com.boxxit.boxxit.app.views.InviteView;
 import com.boxxit.boxxit.datastore.DataStore;
 import com.boxxit.boxxit.library.invite.InviteRequest;
 import com.boxxit.boxxit.library.invite.InviteTask;
@@ -42,6 +45,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
@@ -55,7 +59,8 @@ public class MainActivity extends BaseActivity {
     //
     // views
     @BindView(R.id.ErrorView) ErrorView errorView;
-    @BindView(R.id.InviteView) ErrorView inviteView;
+    @BindView(R.id.InviteView) InviteView inviteView;
+    @BindView(R.id.Footer) RelativeLayout footer;
     @BindView(R.id.EventsRecyclerView) RecyclerView recyclerView;
     @BindView(R.id.Spinner) ProgressBar spinner;
 
@@ -88,7 +93,7 @@ public class MainActivity extends BaseActivity {
         Observable<InitEvent> init = Observable.just(new InitEvent());
         Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
-        Observable<ClickEvent> invites = RxView.clicks(inviteView.retry).map(ClickEvent::new);
+//        Observable<ClickEvent> invites = RxView.clicks(inviteView.invite).map(ClickEvent::new);
         Observable<BoolEvent> tutorial1 = getBooleanExtras("hasTutorial").toObservable()
                 .filter(hasTutorial -> hasTutorial)
                 .map(BoolEvent::new);
@@ -98,7 +103,9 @@ public class MainActivity extends BaseActivity {
                 .filter(aBoolean -> !aBoolean)
                 .map(BoolEvent::new);
 
-        Observable<UIEvent> events = Observable.merge(init, retries, invites, append.asObservable(), tutorial1, tutorial3);
+        inviteView.invite.setOnClickListener(this::executeInvite);
+
+        Observable<UIEvent> events = Observable.merge(init, retries, /*invites,*/ append.asObservable(), tutorial1, tutorial3);
 
         //
         // profile transformer
@@ -166,6 +173,7 @@ public class MainActivity extends BaseActivity {
         } else if (result instanceof LoadEventsResult) {
             LoadEventsResult loadEventsResult = (LoadEventsResult) result;
             switch (loadEventsResult) {
+
                 case LOADING:
                     return MainUIState.EVENTS_LOADING;
                 case SUCCESS:
@@ -238,7 +246,7 @@ public class MainActivity extends BaseActivity {
                 .load(profile.picture.data.url)
                 .placeholder(R.drawable.ic_user_default)
                 .error(R.drawable.ic_user_default)
-                .transform(new CropCircleTransformation())
+                .transform(new RoundedCornersTransformation(25, 0))
                 .into(profilePicture);
     }
 
@@ -247,6 +255,7 @@ public class MainActivity extends BaseActivity {
         errorView.setVisibility(View.GONE);
         inviteView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
+        footer.setVisibility(View.VISIBLE);
     }
 
     private void populateSuccessUI (List<Profile> events) {
@@ -254,12 +263,12 @@ public class MainActivity extends BaseActivity {
         inviteView.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
+        footer.setVisibility(View.VISIBLE);
 
         // TODO: 04/09/2017 to fix this thing, this should be in the activity state somehow
         tmpEvents.addAll(events);
         List<Object> result = new ArrayList<>();
         result.addAll(tmpEvents);
-        result.add(Integer.valueOf(0));
 
         adapter.update(result);
     }
@@ -269,6 +278,7 @@ public class MainActivity extends BaseActivity {
         inviteView.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         recyclerView.setVisibility(View.GONE);
+        footer.setVisibility(View.VISIBLE);
 
         errorView.errorText.setText(getString(R.string.activity_main_error));
         errorView.retry.setText(getString(R.string.error_button_try_again));
@@ -279,59 +289,25 @@ public class MainActivity extends BaseActivity {
         errorView.setVisibility(View.GONE);
         inviteView.setVisibility(View.VISIBLE);
         recyclerView.setVisibility(View.GONE);
-
-        inviteView.errorText.setText(getString(R.string.activity_main_invite_nofriends_message));
-        inviteView.retry.setText(getString(R.string.activity_main_invite_btn_title));
+        footer.setVisibility(View.GONE);
     }
 
     private void populateInitialUI () {
+
         adapter = RxAdapter.create()
                 .bindTo(recyclerView)
-                .setLayoutManger(new GridLayoutManager(getApplicationContext(), 2))
+                .setLayoutManger(new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false))
                 .customizeRow(R.layout.row_event, Profile.class, (position, view, profile, total) -> {
 
                     ImageView profilePicture = (ImageView) view.findViewById(R.id.ProfilePicture);
                     TextView profileName = (TextView) view.findViewById(R.id.ProfileName);
                     TextView profileBirthday = (TextView) view.findViewById(R.id.ProfileBirthday);
-                    View rightSeparator = view.findViewById(R.id.RightSeparator);
 
-                    rightSeparator.setVisibility(position % 2 == 0 ? View.VISIBLE : View.GONE);
                     profileName.setText(profile.name);
                     profileBirthday.setText(getBirthday(profile));
-
-                    Picasso.with(MainActivity.this)
-                            .load(profile.picture.data.url)
-                            .placeholder(R.drawable.ic_user_default)
-                            .error(R.drawable.ic_user_default)
-                            .transform(new CropCircleTransformation())
-                            .into(profilePicture);
-                })
-                .customizeRow(R.layout.row_invite, Integer.class, (position, view, integer2, integer3) -> {
-
-                    ImageView invitePicture = (ImageView) view.findViewById(R.id.InvitePicture);
-
-                    View rightSeparator = view.findViewById(R.id.RightSeparator);
-                    rightSeparator.setVisibility(position % 2 == 0 ? View.VISIBLE : View.GONE);
-
-                    Picasso.with(MainActivity.this)
-                            .load(R.drawable.friends)
-                            .transform(new CropCircleTransformation())
-                            .into(invitePicture);
-
+                    Picasso.with(MainActivity.this).load(profile.picture.data.url).into(profilePicture);
                 })
                 .didClickOnRow(Profile.class, (integer, profile) -> gotoNextScreen(profile.id))
-                .didClickOnRow(Integer.class, (integer, integer2) -> {
-
-                    InviteRequest request = new InviteRequest(MainActivity.this);
-                    InviteTask task = new InviteTask();
-                    task.execute(request)
-                            .subscribe(aVoid -> {
-                                Log.d("Boxxit", "Executing invite");
-                            }, throwable -> {
-                                Log.e("Boxxit", "Error trying to invite " + throwable.getMessage());
-                            });
-
-                })
                 .didReachEnd(() -> {
                     if (offset[0] != null) {
                         append.onNext(null);
@@ -367,5 +343,17 @@ public class MainActivity extends BaseActivity {
             String bday = profile.getNextBirthday();
             return bday != null ? bday : getString(R.string.birthday_no_data);
         }
+    }
+
+    public void executeInvite (View view) {
+
+        InviteRequest request = new InviteRequest(MainActivity.this);
+        InviteTask task = new InviteTask();
+        task.execute(request)
+                .subscribe(aVoid -> {
+                    Log.d("Boxxit", "Executing invite");
+                }, throwable -> {
+                    Log.e("Boxxit", "Error trying to invite " + throwable.getMessage());
+                });
     }
 }

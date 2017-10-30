@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.boxxit.boxxit.R;
@@ -42,6 +43,7 @@ import java.util.concurrent.ExecutionException;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action0;
@@ -215,7 +217,7 @@ public class FavouritesActivity extends BaseActivity {
                 .load(profile.picture.data.url)
                 .placeholder(R.drawable.ic_user_default)
                 .error(R.drawable.ic_user_default)
-                .transform(new CropCircleTransformation())
+                .transform(new RoundedCornersTransformation(25, 0))
                 .into(profilePicture);
     }
 
@@ -248,10 +250,14 @@ public class FavouritesActivity extends BaseActivity {
                 .setLayoutManger(new LinearLayoutManager(getApplicationContext()))
                 .customizeRow(R.layout.row_favourite, Product.class, (position, view, product, total) -> {
 
+                    RelativeLayout productPanel = (RelativeLayout) view.findViewById(R.id.ProductPanel);
                     TextView productName = (TextView) view.findViewById(R.id.ProductName);
                     TextView productPrice = (TextView) view.findViewById(R.id.ProductPrice);
                     ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
-                    Button removeButton = (Button) view.findViewById(R.id.RemoveButton);
+                    ImageButton removeButton = (ImageButton) view.findViewById(R.id.RemoveButton);
+                    Button buyAmazon = (Button) view.findViewById(R.id.BuyOnAmazonButton);
+
+
 
                     //
                     // UGH!!!!
@@ -273,33 +279,37 @@ public class FavouritesActivity extends BaseActivity {
                             .placeholder(R.drawable.no_ama_pic)
                             .into(productImage);
 
+                    //
+                    // remove action
                     removeButton.setOnClickListener(v -> FavouritesActivity.this.removeProduct(product));
-                })
-                .didClickOnRow(Product.class, (integer, product) -> {
 
                     //
-                    // open Url
-                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
+                    // buy action
+                    buyAmazon.setOnClickListener(v -> {
+                        //
+                        // open Url
+                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
 
-                    //
-                    // get current user
-                    String ownId = DataStore.getOwnId();
-                    String fbUser = getStringExtrasDirect("profile");
-                    Profile profile = DataStore.shared().getProfile(fbUser);
+                        //
+                        // get current user
+                        String ownId = DataStore.getOwnId();
+                        String fbUser = getStringExtrasDirect("profile");
+                        Profile profile = DataStore.shared().getProfile(fbUser);
 
-                    Bundle params = new Bundle();
+                        Bundle params = new Bundle();
 
-                    //
-                    // prep data
-                    params.putString("user_id", ownId);
-                    params.putString("friend_id", profile.id);
-                    params.putString("friend_name", profile.name);
-                    params.putString("product_id", product.asin);
-                    params.putString("product_name", product.title);
+                        //
+                        // prep data
+                        params.putString("user_id", ownId);
+                        params.putString("friend_id", profile.id);
+                        params.putString("friend_name", profile.name);
+                        params.putString("product_id", product.asin);
+                        params.putString("product_name", product.title);
 
-                    //
-                    // send analytics
-                    mFirebaseAnalytics.logEvent("view_product", params);
+                        //
+                        // send analytics
+                        mFirebaseAnalytics.logEvent("view_product", params);
+                    });
                 });
     }
 

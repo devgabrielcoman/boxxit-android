@@ -3,14 +3,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:background="@color/white"
     tools:context="com.boxxit.boxxit.app.activities.explore.ExploreActivity">
 
     <RelativeLayout
         android:id="@+id/SmallHeader"
         android:layout_width="match_parent"
         android:layout_height="60dp">
+
+        <ImageView
+            android:id="@+id/HeaderBg"
+            android:src="@drawable/headerbg"
+            android:scaleType="fitXY"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
         <ImageButton
             android:id="@+id/BackButton"
@@ -27,8 +32,8 @@
             android:layout_centerVertical="true"
             android:src="@drawable/ic_user_default"
             android:scaleType="fitCenter"
-            android:layout_width="42dp"
-            android:layout_height="42dp"/>
+            android:layout_width="30dp"
+            android:layout_height="30dp"/>
 
         <LinearLayout
             android:id="@+id/ProfileDetails"
@@ -51,6 +56,7 @@
             <TextView
                 android:id="@+id/ProfileBirthday"
                 android:text="@string/activity_explore_birthday_placeholder"
+                android:layout_marginTop="-3dp"
                 android:textColor="@color/text_medium"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
@@ -62,17 +68,10 @@
             android:layout_alignParentEnd="true"
             android:scaleType="centerInside"
             android:padding="15dp"
-            android:src="@drawable/like"
+            android:src="@drawable/favs"
             android:background="@color/transparent"
             android:layout_width="60dp"
-            android:layout_height="match_parent"
-            android:onClick="gotoNextScreen"/>
-
-        <View
-            android:layout_alignParentBottom="true"
-            android:layout_width="match_parent"
-            android:background="@color/separator"
-            android:layout_height="1dp"/>
+            android:layout_height="match_parent"/>
 
     </RelativeLayout>
 
@@ -80,7 +79,9 @@
         android:id="@+id/ProductsRecyclerView"
         android:layout_below="@+id/SmallHeader"
         android:scrollbars="none"
-        android:background="#ffffff"
+        android:paddingTop="16dp"
+        android:clipToPadding="false"
+        android:background="@color/background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
