@@ -94,18 +94,13 @@ public class MainActivity extends BaseActivity {
         Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
 //        Observable<ClickEvent> invites = RxView.clicks(inviteView.invite).map(ClickEvent::new);
-        Observable<BoolEvent> tutorial1 = getBooleanExtras("hasTutorial").toObservable()
+        Observable<BoolEvent> tutorial = getBooleanExtras("hasTutorial").toObservable()
                 .filter(hasTutorial -> hasTutorial)
-                .map(BoolEvent::new);
-        Observable<BoolEvent> tutorial3 = getActivityResult()
-                .filter(integer -> integer == 101)
-                .flatMap(integer -> DataStore.shared().getThirdTutorialSeen(MainActivity.this))
-                .filter(aBoolean -> !aBoolean)
                 .map(BoolEvent::new);
 
         inviteView.invite.setOnClickListener(this::executeInvite);
 
-        Observable<UIEvent> events = Observable.merge(init, retries, /*invites,*/ append.asObservable(), tutorial1, tutorial3);
+        Observable<UIEvent> events = Observable.merge(init, retries, /*invites,*/ append.asObservable(), tutorial);
 
         //
         // profile transformer
@@ -135,10 +130,8 @@ public class MainActivity extends BaseActivity {
 
         //
         // tutorial transformers
-        Observable.Transformer<BoolEvent, TutorialResult> tutorial1Transformer = valueEventObservable -> tutorial1
-                .map(booleanValueEvent -> TutorialResult.PRESENT1);
-        Observable.Transformer<BoolEvent, TutorialResult> tutorial2Transformer = integerEventObservable -> tutorial3
-                .map(integerEvent -> TutorialResult.PRESENT3);
+        Observable.Transformer<BoolEvent, TutorialResult> tutorialTransformer = valueEventObservable -> tutorial
+                .map(booleanValueEvent -> TutorialResult.PRESENT);
 
         //
         // main transformer
@@ -146,8 +139,7 @@ public class MainActivity extends BaseActivity {
                 observable.ofType(UIEvent.class).compose(eventsTransformer),
                 observable.ofType(InitEvent.class).compose(profileTransformer),
                 observable.ofType(ClickEvent.class).compose(exploreTransformer),
-                observable.ofType(BoolEvent.class).compose(tutorial1Transformer),
-                observable.ofType(BoolEvent.class).compose(tutorial2Transformer)
+                observable.ofType(BoolEvent.class).compose(tutorialTransformer)
         );
 
         //
@@ -188,10 +180,8 @@ public class MainActivity extends BaseActivity {
         } else if (result instanceof TutorialResult) {
             TutorialResult tutorialResult = (TutorialResult) result;
             switch (tutorialResult) {
-                case PRESENT1:
-                    return MainUIState.PRESENT_TUTORIAL1;
-                case PRESENT3:
-                    return MainUIState.PRESENT_TUTORIAL3;
+                case PRESENT:
+                    return MainUIState.PRESENT_TUTORIAL;
                 default:
                     return previousState;
             }
@@ -227,13 +217,8 @@ public class MainActivity extends BaseActivity {
             case GOTO_EXPLORE:
                 gotoNextScreen(DataStore.getOwnId());
                 break;
-            case PRESENT_TUTORIAL1:
-                DataStore.shared().setFirstTutorialSeen(this);
-                presentTutorial1();
-                break;
-            case PRESENT_TUTORIAL3:
-                DataStore.shared().setThirdTutorialSeen(this);
-                presentTutorial3();
+            case PRESENT_TUTORIAL:
+                presentTutorial();
                 break;
         }
     }
@@ -318,20 +303,12 @@ public class MainActivity extends BaseActivity {
     void gotoNextScreen (String profile) {
         Intent intent = new Intent(this, ExploreActivity.class);
         intent.putExtra("profile", profile);
-        boolean hasTutorial = getBooleanExtrasDirect("hasTutorial");
-        intent.putExtra("hasTutorial", hasTutorial);
         startActivityForResult(intent, 100);
     }
 
-    void presentTutorial1 () {
+    void presentTutorial () {
         Intent tutorial = new Intent(this, TutorialActivity.class);
         startActivity(tutorial);
-    }
-
-    void presentTutorial3 () {
-        Intent tutorial3 = new Intent(MainActivity.this, TutorialActivity.class);
-        tutorial3.putExtra("hasToFinish", true);
-        startActivity(tutorial3);
     }
 
     private String getBirthday(Profile profile) {

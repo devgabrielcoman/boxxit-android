@@ -3,47 +3,67 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="@color/transparent"
+    android:background="@color/translucid"
     android:id="@+id/MainTutorialView"
     tools:context="com.boxxit.boxxit.app.activities.tutorial.TutorialActivity">
 
-    <com.boxxit.boxxit.app.views.TutorialView
-        android:visibility="gone"
-        android:id="@+id/Tutorial1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+    <ImageView
+        android:src="@drawable/logo"
+        android:layout_margin="20dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"/>
 
-    <com.boxxit.boxxit.app.views.TutorialView
-        android:visibility="gone"
-        android:id="@+id/Tutorial2"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+    <ImageView
+        android:id="@+id/ProfilePicture"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp" />
 
-    <com.boxxit.boxxit.app.views.TutorialView
-        android:visibility="gone"
-        android:id="@+id/Tutorial3"
+    <TextView
+        android:id="@+id/TutorialPrimaryText"
+        android:textSize="22sp"
+        android:layout_below="@+id/ProfilePicture"
+        android:textColor="@color/white"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"
+        android:textAlignment="center"
+        android:text="@string/activity_tutorial_welcome_text"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content" />
 
-    <com.boxxit.boxxit.app.views.TutorialView
-        android:visibility="gone"
-        android:id="@+id/Tutorial4"
+    <TextView
+        android:id="@+id/TutorialSecondaryText"
+        android:textSize="16sp"
+        android:layout_below="@+id/TutorialPrimaryText"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:layout_above="@+id/ContinueText"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"
+        android:textAlignment="center"
+        android:text="@string/activity_tutorial_step_1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="wrap_content" />
 
-    <com.boxxit.boxxit.app.views.TutorialView
-        android:visibility="gone"
-        android:id="@+id/Tutorial5"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+    <TextView
+        android:id="@+id/ContinueText"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:textAllCaps="false"
+        android:textColor="@color/shadow"
+        android:text="@string/activity_tutorial_continue_text"
+        android:background="@drawable/small_button_dark"
+        android:layout_width="140dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="30dp"/>
 
     <Button
-        android:id="@+id/DismissButton"
-        android:visibility="gone"
-        android:clickable="false"
-        android:enabled="false"
+        android:id="@+id/ContinueButton"
         android:layout_width="match_parent"
-        android:background="@color/transparent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:background="@color/transparent"/>
 
 </RelativeLayout>
