@@ -1,42 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="170dp"
+    android:layout_width="155dp"
     android:layout_height="match_parent"
     android:background="@color/background"
     android:layout_marginTop="16dp"
     android:layout_marginEnd="16dp"
     android:layout_marginBottom="16dp">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/shadow">
+        android:background="@drawable/shadow"
+        android:orientation="vertical">
         <com.boxxit.boxxit.app.views.RoundRectCornerImageView
             android:id="@+id/ProfilePicture"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"
-            android:layout_height="120dp"/>
-        <TextView
-            android:id="@+id/ProfileName"
-            android:layout_marginTop="16dp"
-            android:layout_below="@+id/ProfilePicture"
-            android:textStyle="bold"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:textColor="@color/text_red"
-            android:text="@string/activity_main_name_placeholder"
+            android:layout_height="0dp"
+            android:layout_weight="3"/>
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/ProfileBirthday"
-            android:layout_below="@+id/ProfileName"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_dark"
-            android:text="@string/activity_main_birthday_placeholder"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-    </RelativeLayout>
+            android:layout_height="0dp"
+            android:layout_weight="2">
+
+            <TextView
+                android:id="@+id/ProfileName"
+                android:layout_marginTop="16dp"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:textColor="@color/text_red"
+                android:text="@string/activity_main_name_placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+            <TextView
+                android:id="@+id/ProfileBirthday"
+                android:layout_below="@+id/ProfileName"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_dark"
+                android:text="@string/activity_main_birthday_placeholder"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </RelativeLayout>
+    </LinearLayout>
 </LinearLayout>

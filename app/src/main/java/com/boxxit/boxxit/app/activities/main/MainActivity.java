@@ -91,16 +91,21 @@ public class MainActivity extends BaseActivity {
         // UI & other events
         append = PublishSubject.create();
         Observable<InitEvent> init = Observable.just(new InitEvent());
-        Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
+//        Observable<ClickEvent> explore = RxView.clicks(mainButton).map(ClickEvent::new);
         Observable<RetryClickEvent> retries = RxView.clicks(errorView.retry).map(RetryClickEvent::new);
 //        Observable<ClickEvent> invites = RxView.clicks(inviteView.invite).map(ClickEvent::new);
-        Observable<BoolEvent> tutorial = getBooleanExtras("hasTutorial").toObservable()
-                .filter(hasTutorial -> hasTutorial)
-                .map(BoolEvent::new);
+//        Observable<BoolEvent> tutorial = getBooleanExtras("hasTutorial").toObservable()
+//                .filter(hasTutorial -> hasTutorial)
+//                .map(BoolEvent::new);
 
         inviteView.invite.setOnClickListener(this::executeInvite);
 
-        Observable<UIEvent> events = Observable.merge(init, retries, /*invites,*/ append.asObservable(), tutorial);
+        Boolean hasTutorial = getBooleanExtrasDirect("hasTutorial");
+        if (hasTutorial) {
+            presentTutorial();
+        }
+
+        Observable<UIEvent> events = Observable.merge(init, retries, /*invites,*/ append.asObservable()/*, tutorial*/);
 
         //
         // profile transformer
@@ -123,23 +128,23 @@ public class MainActivity extends BaseActivity {
                         .startWith(LoadEventsResult.LOADING)
                 .observeOn(AndroidSchedulers.mainThread());
 
-        //
-        // explore main transformer
-        Observable.Transformer<ClickEvent, NavigateResult> exploreTransformer = clickEventObservable -> explore
-                .map(clickEvent -> NavigateResult.NEXT);
+//        //
+//        // explore main transformer
+//        Observable.Transformer<ClickEvent, NavigateResult> exploreTransformer = clickEventObservable -> explore
+//                .map(clickEvent -> NavigateResult.NEXT);
 
         //
         // tutorial transformers
-        Observable.Transformer<BoolEvent, TutorialResult> tutorialTransformer = valueEventObservable -> tutorial
-                .map(booleanValueEvent -> TutorialResult.PRESENT);
+//        Observable.Transformer<BoolEvent, TutorialResult> tutorialTransformer = valueEventObservable -> tutorial
+//                .map(booleanValueEvent -> TutorialResult.PRESENT);
 
         //
         // main transformer
         Observable.Transformer<UIEvent, Result> transformer = observable -> Observable.merge(
                 observable.ofType(UIEvent.class).compose(eventsTransformer),
-                observable.ofType(InitEvent.class).compose(profileTransformer),
-                observable.ofType(ClickEvent.class).compose(exploreTransformer),
-                observable.ofType(BoolEvent.class).compose(tutorialTransformer)
+                observable.ofType(InitEvent.class).compose(profileTransformer)
+//                observable.ofType(ClickEvent.class).compose(exploreTransformer),
+//                observable.ofType(BoolEvent.class).compose(tutorialTransformer)
         );
 
         //
@@ -177,17 +182,20 @@ public class MainActivity extends BaseActivity {
                 default:
                     return previousState;
             }
-        } else if (result instanceof TutorialResult) {
-            TutorialResult tutorialResult = (TutorialResult) result;
-            switch (tutorialResult) {
-                case PRESENT:
-                    return MainUIState.PRESENT_TUTORIAL;
-                default:
-                    return previousState;
-            }
-        } else if (result instanceof NavigateResult) {
-            return MainUIState.GOTO_EXPLORE;
-        } else {
+        }
+//        else if (result instanceof TutorialResult) {
+//            TutorialResult tutorialResult = (TutorialResult) result;
+//            switch (tutorialResult) {
+//                case PRESENT:
+//                    return MainUIState.PRESENT_TUTORIAL;
+//                default:
+//                    return previousState;
+//            }
+//        }
+//        else if (result instanceof NavigateResult) {
+//            return MainUIState.GOTO_EXPLORE;
+//        }
+        else {
             return previousState;
         }
     }
@@ -214,12 +222,12 @@ public class MainActivity extends BaseActivity {
             case EVENTS_ERROR:
                 populateErrorUI(state.throwable);
                 break;
-            case GOTO_EXPLORE:
-                gotoNextScreen(DataStore.getOwnId());
-                break;
-            case PRESENT_TUTORIAL:
-                presentTutorial();
-                break;
+//            case GOTO_EXPLORE:
+//                gotoNextScreen(DataStore.getOwnId());
+//                break;
+//            case PRESENT_TUTORIAL:
+//                presentTutorial();
+//                break;
         }
     }
 
@@ -298,6 +306,10 @@ public class MainActivity extends BaseActivity {
                         append.onNext(null);
                     }
                 });
+    }
+
+    public void gotoNextScreenForUser (View view) {
+        gotoNextScreen(DataStore.getOwnId());
     }
 
     void gotoNextScreen (String profile) {

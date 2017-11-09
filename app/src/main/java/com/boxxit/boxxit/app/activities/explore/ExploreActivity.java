@@ -56,7 +56,6 @@ import rx.subjects.PublishSubject;
 public class ExploreActivity extends BaseActivity {
 
     @BindView(R.id.ErrorView) ErrorView errorView;
-    @BindView(R.id.BoxxitLogo) ImageView boxxitLogo;
     @BindView(R.id.Spinner) ProgressBar spinner;
     @BindView(R.id.ProductsRecyclerView) RecyclerView recyclerView;
 
@@ -247,7 +246,6 @@ public class ExploreActivity extends BaseActivity {
     }
 
     private void updateProductsUI (List<Product> products) {
-        boxxitLogo.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         errorView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
