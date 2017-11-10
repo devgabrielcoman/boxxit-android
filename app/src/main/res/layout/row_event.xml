@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="155dp"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:layout_marginTop="16dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginBottom="16dp">
+    android:paddingTop="16dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/shadow"
+        android:clipToPadding="false"
         android:orientation="vertical">
         <com.boxxit.boxxit.app.views.TopRoundedRectCornerImageView
             android:id="@+id/ProfilePicture"
@@ -47,4 +47,4 @@
                 android:layout_height="wrap_content"/>
         </RelativeLayout>
     </LinearLayout>
-</LinearLayout>
+</RelativeLayout>
