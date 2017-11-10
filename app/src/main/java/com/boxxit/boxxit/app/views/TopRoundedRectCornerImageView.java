@@ -6,36 +6,38 @@ import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 
-public class RoundRectCornerImageView extends android.support.v7.widget.AppCompatImageView {
+public class TopRoundedRectCornerImageView extends android.support.v7.widget.AppCompatImageView {
 
     private float radius = 18.0f;
     private Path path;
     private RectF rect;
+    private float[] raddi;
 
-    public RoundRectCornerImageView(Context context) {
+    public TopRoundedRectCornerImageView(Context context) {
         super(context);
         init();
     }
 
-    public RoundRectCornerImageView(Context context, AttributeSet attrs) {
+    public TopRoundedRectCornerImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public RoundRectCornerImageView(Context context, AttributeSet attrs, int defStyle) {
+    public TopRoundedRectCornerImageView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
     }
 
     private void init() {
         path = new Path();
+        raddi = new float[]{radius,radius,radius,radius,0,0,0,0};
 //        rect = new RectF(0, 0, this.getWidth(), this.getHeight());
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         rect = new RectF(0, 0, this.getWidth(), this.getHeight());
-        path.addRoundRect(rect, radius, radius, Path.Direction.CW);
+        path.addRoundRect(rect, raddi, Path.Direction.CW);
         canvas.clipPath(path);
         super.onDraw(canvas);
     }

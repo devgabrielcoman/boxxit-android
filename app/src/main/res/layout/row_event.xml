@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/shadow"
         android:orientation="vertical">
-        <com.boxxit.boxxit.app.views.RoundRectCornerImageView
+        <com.boxxit.boxxit.app.views.TopRoundedRectCornerImageView
             android:id="@+id/ProfilePicture"
             android:scaleType="centerCrop"
             android:layout_width="match_parent"
