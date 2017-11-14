@@ -2,7 +2,6 @@ package com.boxxit.boxxit.app.activities.main;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -18,21 +17,15 @@ import com.boxxit.boxxit.app.activities.BaseActivity;
 import com.boxxit.boxxit.app.activities.explore.ExploreActivity;
 import com.boxxit.boxxit.app.activities.tutorial.TutorialActivity;
 import com.boxxit.boxxit.app.events.AppendEvent;
-import com.boxxit.boxxit.app.events.ClickEvent;
 import com.boxxit.boxxit.app.events.InitEvent;
 import com.boxxit.boxxit.app.events.RetryClickEvent;
 import com.boxxit.boxxit.app.events.UIEvent;
-import com.boxxit.boxxit.app.events.BoolEvent;
 import com.boxxit.boxxit.app.results.LoadEventsResult;
 import com.boxxit.boxxit.app.results.LoadProfileResult;
-import com.boxxit.boxxit.app.results.NavigateResult;
 import com.boxxit.boxxit.app.results.Result;
-import com.boxxit.boxxit.app.results.TutorialResult;
 import com.boxxit.boxxit.app.views.ErrorView;
 import com.boxxit.boxxit.app.views.InviteView;
 import com.boxxit.boxxit.datastore.DataStore;
-import com.boxxit.boxxit.library.invite.InviteRequest;
-import com.boxxit.boxxit.library.invite.InviteTask;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 import com.boxxit.boxxit.workers.UserWorker;
 import com.gabrielcoman.rxrecyclerview.RxAdapter;
@@ -44,14 +37,9 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import jp.wasabeef.picasso.transformations.RoundedCornersTransformation;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Action2;
-import rx.functions.Action4;
-import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 
 public class MainActivity extends BaseActivity {
@@ -336,13 +324,10 @@ public class MainActivity extends BaseActivity {
 
     public void executeInvite (View view) {
 
-        InviteRequest request = new InviteRequest(MainActivity.this);
-        InviteTask task = new InviteTask();
-        task.execute(request)
-                .subscribe(aVoid -> {
-                    Log.d("Boxxit", "Executing invite");
-                }, throwable -> {
-                    Log.e("Boxxit", "Error trying to invite " + throwable.getMessage());
-                });
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, getResources().getString(R.string.activity_main_invite_send_message));
+        sendIntent.setType("text/plain");
+        startActivity(Intent.createChooser(sendIntent, getResources().getText(R.string.activity_main_invite_btn_title)));
     }
 }

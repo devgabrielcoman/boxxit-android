@@ -20,6 +20,7 @@
     <string name="activity_main_invite_friends_message">It\'s better with friends.</string>
     <string name="activity_main_invite_nofriends_message_1">Connect\nwith your friends</string>
     <string name="activity_main_invite_nofriends_message_2">and discover\nnew ideas for gifts</string>
+    <string name="activity_main_invite_send_message">Hey! Check out Boxxit, this cool new app that helps you find gifts for your friends.\n\nhttps://play.google.com/store/apps/details?id=com.boxxit.boxxit</string>
 
     <string name="activity_main_error">Error trying to get friends birthdays</string>
 
