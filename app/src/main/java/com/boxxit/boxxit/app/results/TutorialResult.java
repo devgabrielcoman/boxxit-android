@@ -3,18 +3,15 @@ package com.boxxit.boxxit.app.results;
 import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 
 public enum TutorialResult implements Result {
-    PRESENT1,
-    PRESENT2,
-    PRESENT3,
-    DISMISS,
-    GOTO_NEXT_TUTORIAL,
+    PRESENT,
+    ADVANCE,
     ERROR;
 
     public Throwable error;
     public Profile profile;
 
-    public static TutorialResult gotoNext (Profile profile) {
-        TutorialResult result = GOTO_NEXT_TUTORIAL;
+    public static TutorialResult advance (Profile profile) {
+        TutorialResult result = ADVANCE;
         result.profile = profile;
         return result;
     }

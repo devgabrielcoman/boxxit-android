@@ -32,7 +32,7 @@
             android:layout_toEndOf="@+id/BackButton"
             android:layout_centerVertical="true"
             android:src="@drawable/ic_user_default"
-            android:scaleType="fitCenter"
+            android:scaleType="centerCrop"
             android:layout_width="30dp"
             android:layout_height="30dp"/>
 

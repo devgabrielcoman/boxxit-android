@@ -14,8 +14,7 @@ public enum ExploreUIState {
     PRODUCTS_SUCCESS,
     PRODUCTS_ERROR,
     GO_BACK,
-    GOTO_FAVOURITES,
-    PRESENT_TUTORIAL2;
+    GOTO_FAVOURITES;
 
     Profile profile;
     List<Product> products = new ArrayList<>();

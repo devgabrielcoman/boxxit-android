@@ -56,7 +56,6 @@ import rx.subjects.PublishSubject;
 public class ExploreActivity extends BaseActivity {
 
     @BindView(R.id.ErrorView) ErrorView errorView;
-    @BindView(R.id.BoxxitLogo) ImageView boxxitLogo;
     @BindView(R.id.Spinner) ProgressBar spinner;
     @BindView(R.id.ProductsRecyclerView) RecyclerView recyclerView;
 
@@ -133,18 +132,12 @@ public class ExploreActivity extends BaseActivity {
                 .observeOn(AndroidSchedulers.mainThread());
 
         //
-        // tutorial transfoermers
-        Observable.Transformer<BoolEvent, TutorialResult> tutorialTransformer = boolEventObservable -> tutorial2
-                .map(boolEvent -> TutorialResult.PRESENT2);
-
-        //
         // merged transformer and scan into state
         Observable.Transformer<UIEvent, Result> transformer = eventObservable -> Observable.merge(
                 eventObservable.ofType(UIEvent.class).compose(productsTransformer),
                 eventObservable.ofType(InitEvent.class).compose(profileTransformer),
                 eventObservable.ofType(FavouritesClickEvent.class).compose(favTransformer),
-                eventObservable.ofType(BackClickEvent.class).compose(backTransformer),
-                eventObservable.ofType(BoolEvent.class).compose(tutorialTransformer)
+                eventObservable.ofType(BackClickEvent.class).compose(backTransformer)
         );
 
         //
@@ -192,9 +185,6 @@ public class ExploreActivity extends BaseActivity {
                     return previousState;
             }
         }
-        else if (result instanceof TutorialResult) {
-            return ExploreUIState.PRESENT_TUTORIAL2;
-        }
         else {
             return previousState;
         }
@@ -218,10 +208,6 @@ public class ExploreActivity extends BaseActivity {
                 break;
             case PRODUCTS_ERROR:
                 updateErrorUI(state.throwable);
-                break;
-            case PRESENT_TUTORIAL2:
-                DataStore.shared().setSecondTutorialSeen(this);
-                presentTutorial2();
                 break;
             case GO_BACK:
                 gotoBack(state.backResult);
@@ -260,7 +246,6 @@ public class ExploreActivity extends BaseActivity {
     }
 
     private void updateProductsUI (List<Product> products) {
-        boxxitLogo.setVisibility(View.GONE);
         spinner.setVisibility(View.GONE);
         errorView.setVisibility(View.GONE);
         recyclerView.setVisibility(View.VISIBLE);
@@ -355,12 +340,6 @@ public class ExploreActivity extends BaseActivity {
                     });
                 })
                 .didReachEnd(() -> append.onNext(null));
-    }
-
-    private void presentTutorial2 () {
-        Intent tutorial2 = new Intent(this, TutorialActivity.class);
-        tutorial2.putExtra("startInExplore", true);
-        startActivity(tutorial2);
     }
 
     private String getBirthday(Profile profile) {

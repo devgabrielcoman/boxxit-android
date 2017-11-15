@@ -4,12 +4,10 @@ import com.boxxit.boxxit.library.parse.models.facebook.Profile;
 
 public enum TutorialUIState {
     INITIAL,
-    TUTORIAL_1,
-    TUTORIAL_2,
-    TUTORIAL_3,
-    TUTORIAL_4,
-    TUTORIAL_5,
-    DISMISSED,
+    STEP_1,
+    STEP_2,
+    STEP_3,
+    DONE,
     ERROR;
 
     public Profile profile;
