@@ -272,6 +272,7 @@ public class ExploreActivity extends BaseActivity {
                     ImageButton likeProduct = (ImageButton) view.findViewById(R.id.LikeButton);
                     ImageView productImage = (ImageView) view.findViewById(R.id.ProductImage);
                     Button amazonButton = (Button) view.findViewById(R.id.AmazonBtn);
+                    Button amazonButton2 = (Button) view.findViewById(R.id.AmazonBtn2);
 
                     productName.setText(product.title);
                     productPrice.setText(product.price);
@@ -289,7 +290,7 @@ public class ExploreActivity extends BaseActivity {
 
                     //
                     // when clicking on the amazon button
-                    amazonButton.setOnClickListener(v -> {
+                    View.OnClickListener amazonAction = v -> {
                         //
                         // open activity
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(product.click)));
@@ -313,7 +314,9 @@ public class ExploreActivity extends BaseActivity {
                         //
                         // send analytics
                         mFirebaseAnalytics.logEvent("view_product", params);
-                    });
+                    };
+                    amazonButton.setOnClickListener(amazonAction);
+                    amazonButton2.setOnClickListener(amazonAction);
 
                     //
                     // when clicking on the heart button
